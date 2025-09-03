@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>فعاليات الأصدقاء — ألعاب بسيطة</title>
+  <style>
+    body{font-family:system-ui,Arial;direction:rtl;padding:20px;background:#0f172a;color:#e6eef8}
+    .card{background:#0b1220;padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,.6);margin-bottom:18px}
+    h1{font-size:20px;margin:0 0 12px}
+    .nav{display:flex;gap:8px;margin-bottom:12px}
+    button{cursor:pointer;padding:8px 12px;border-radius:8px;border:0;background:#2563eb;color:white}
+    input{padding:8px;border-radius:8px;border:1px solid #233042;background:#081020;color:#e6eef8}
+    /* TicTacToe grid */
+    .grid{display:grid;grid-template-columns:repeat(3,80px);gap:8px;margin-top:12px}
+    .cell{width:80px;height:80px;display:flex;align-items:center;justify-content:center;background:#071127;border-radius:10px;font-size:32px;user-select:none}
+    .small{font-size:14px}
+    /* memory */
+    .memory-board{display:grid;grid-template-columns:repeat(4,70px);gap:8px}
+    .tile{width:70px;height:70px;display:flex;align-items:center;justify-content:center;background:#081827;border-radius:8px;font-weight:bold;font-size:22px;cursor:pointer}
+    .hidden{background:#072033}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>فعاليات سريعة للأصدقاء — ألعاب ذهنية</h1>
+    <div class="small">اختر لعبة: العب محلياً أو ادعُ صديق بالدخول بنفس رمز الغرفة للعب أونلاين.</div>
+    <div class="nav">
+      <button id="show-memory">لعبة الذاكرة (محلي)</button>
+      <button id="show-tic">تيك-تاك-تو (أونلاين)</button>
+    </div>
+  </div>
+
+  <!-- Memory (local) -->
+  <div id="memory" class="card" style="display:none">
+    <h2>لعبة الذاكرة</h2>
+    <div class="small">اضغط على مربعين لتطابق الرموز.</div>
+    <div id="memoryBoard" class="memory-board" style="margin-top:12px"></div>
+    <div style="margin-top:10px"><button id="resetMemory">إعادة</button></div>
+  </div>
+
+  <!-- TicTacToe (online via Firebase) -->
+  <div id="tic" class="card" style="display:none">
+    <h2>تيك-تاك-تو (أونلاين)</h2>
+    <div class="small">انشئ أو انضم إلى غرفة مشتركة: شارك رمز الغرفة مع صديقك.</div>
+    <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+      <input id="roomId" placeholder="رمز الغرفة (مثال: room123)" />
+      <button id="createRoom">إنشاء/دخول</button>
+      <button id="leaveRoom">مغادرة الغرفة</button>
+    </div>
+    <div style="margin-top:10px">
+      <div>الحالة: <span id="status">غير متصل</span></div>
+      <div style="margin-top:10px" class="grid" id="board"></div>
+      <div style="margin-top:10px">
+        <div id="turnInfo"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <script>
+  // ======= CONFIG: ضع هنا إعدادات Firebase (تأخذها من console.firebase.google.com) =======
+  const firebaseConfig = {
+    // REPLACE WITH YOUR FIREBASE CONFIG
+    // example:
+    // apiKey: "xxxx",
+    // authDomain: "project-id.firebaseapp.com",
+    // databaseURL: "https://project-id-default-rtdb.firebaseio.com",
+    // projectId: "project-id",
+  };
+  // ======= INIT =======
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+
+  // ---- UI switch
+  document.getElementById('show-memory').onclick = ()=>{document.getElementById('memory').style.display='block';document.getElementById('tic').style.display='none'}
+  document.getElementById('show-tic').onclick = ()=>{document.getElementById('memory').style.display='none';document.getElementById('tic').style.display='block'}
+
+  // ================= Memory (local) =================
+  const symbols = ['🍎','🍌','🍇','🍒','🍋','🍉','🥝','🍍']; // 8 زوج => 16 مربعات
+  let memBoard = [];
+  let first=null, second=null;
+  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a}
+  function initMemory(){
+    const arr = shuffle(symbols.concat(symbols));
+    memBoard = arr.map((s,i)=>({sym:s,flipped:false,done:false,id:i}));
+    renderMemory();
+  }
+  function renderMemory(){
+    const el = document.getElementById('memoryBoard'); el.innerHTML='';
+    memBoard.forEach(tile=>{
+      const d=document.createElement('div'); d.className='tile '+(tile.flipped||tile.done?'':'hidden');
+      d.textContent = (tile.flipped||tile.done)?tile.sym:'';
+      d.onclick = ()=> {
+        if(tile.flipped||tile.done) return;
+        if(first===null){tile.flipped=true; first=tile; renderMemory(); return}
+        if(second===null){tile.flipped=true; second=tile; renderMemory();
+          // check
+          if(first.sym===second.sym){first.done=true; second.done=true; first=null; second=null}
+          else { setTimeout(()=>{ first.flipped=false; second.flipped=false; first=null; second=null; renderMemory(); },800) }
+        }
+      };
+      el.appendChild(d);
+    });
+  }
+  document.getElementById('resetMemory').onclick = initMemory;
+  initMemory();
+
+  // ================= TicTacToe (online via Firebase Realtime DB) =================
+  const boardEl = document.getElementById('board');
+  let mySymbol = null; // 'X' or 'O'
+  let roomRef = null;
+  let localRoomId = null;
+  function createBoardUI(){
+    boardEl.innerHTML='';
+    for(let i=0;i<9;i++){
+      const c=document.createElement('div'); c.className='cell'; c.id='cell'+i; c.textContent='';
+      c.onclick = ()=> tryMove(i);
+      boardEl.appendChild(c);
+    }
+  }
+  createBoardUI();
+
+  function setStatus(t){document.getElementById('status').textContent = t}
+  function setTurnInfo(t){document.getElementById('turnInfo').textContent = t}
+
+  // create or join room
+  document.getElementById('createRoom').onclick = ()=>{
+    const id = (document.getElementById('roomId').value||'').trim();
+    if(!id){alert('ضع رمز غرفة'); return}
+    joinRoom(id);
+  }
+  document.getElementById('leaveRoom').onclick = ()=>{
+    if(roomRef && localRoomId){
+      roomRef.off(); roomRef=null; localRoomId=null; mySymbol=null; setStatus('غير متصل'); setTurnInfo(''); createBoardUI();
+    }
+  }
+
+  async function joinRoom(id){
+    localRoomId = id;
+    roomRef = database.ref('rooms/' + id);
+    setStatus('محاولة الانضمام...');
+    // read once to see room state
+    const snap = await roomRef.once('value');
+    let data = snap.val();
+    if(!data){
+      // create room
+      const newRoom = {board:Array(9).fill(''),turn:'X',players:{X:true},winner:''};
+      await roomRef.set(newRoom);
+      mySymbol = 'X';
+      setStatus('أنشأت الغرفة — أنت X');
+    } else {
+      // join as O if available
+      if(!data.players || !data.players.O){
+        await roomRef.child('players/O').set(true);
+        mySymbol = 'O';
+        setStatus('انضممت للغرفة — أنت O');
+      } else {
+        alert('القاعة ممتلئة (2 لاعبين فقط). اختر رمز آخر أو أنشئ غرفة جديدة.');
+        roomRef.off(); roomRef=null; localRoomId=null; return;
+      }
+    }
+    // start listening للاختلافات
+    roomRef.on('value', snap => {
+      const val = snap.val();
+      if(!val) return;
+      renderGameState(val);
+    });
+  }
+
+  function renderGameState(state){
+    // update board UI
+    state.board.forEach((v,i)=>{
+      const el = document.getElementById('cell'+i);
+      if(el) el.textContent = v;
+    });
+    if(state.winner){
+      setTurnInfo('انتهت اللعبة — الفائز: ' + state.winner);
+    } else {
+      setTurnInfo('دور: ' + state.turn + (mySymbol?(' — أنت: '+mySymbol):''));
+    }
+  }
+
+  async function tryMove(i){
+    if(!roomRef){alert('انضم لغرفة أولاً'); return}
+    const snap = await roomRef.once('value');
+    const room = snap.val();
+    if(room.winner) return alert('اللعبة انتهت');
+    if(room.board[i]) return; // مش فاضي
+    if(room.turn !== mySymbol) return alert('ليست حركتك');
+    // perform move
+    room.board[i] = mySymbol;
+    // check win
+    const win = checkWinner(room.board);
+    if(win){
+      room.winner = mySymbol;
+      room.turn = '';
+    } else {
+      room.turn = (room.turn === 'X') ? 'O' : 'X';
+    }
+    await roomRef.set(room);
+  }
+
+  function checkWinner(b){
+    const lines = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+    for(const [a,c,d] of lines){
+      if(b[a] && b[a]===b[c] && b[a]===b[d]) return b[a];
+    }
+    return null;
+  }
+
+  // Cleanup when closed
+  window.addEventListener('beforeunload', ()=>{
+    if(localRoomId && mySymbol==='O'){
+      // if O leaves, remove player O flag (not necessary but polite)
+      database.ref('rooms/'+localRoomId+'/players/O').remove();
+    }
+  });
+  </script>
+</body>
+</html>
