@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>فعاليات الأصدقاء</title>
 
-  <!-- خطوط عصرية -->
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -19,7 +17,7 @@
       <label class="label">اسم مستعار</label>
       <input id="nickInput" placeholder="اكتب اسمك المستعار" autocomplete="off" />
 
-      <label class="label" style="margin-top:10px">أدخل كود الدخول (سيُزوّد من المدير)</label>
+      <label class="label" style="margin-top:10px">أدخل كود الدخول (سيُزوَّد من المدير)</label>
       <input id="userCodeInput" placeholder="أدخل كود الدخول هنا" autocomplete="off" />
 
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
@@ -86,28 +84,67 @@
     </div>
   </main>
 
-  <!-- Simple modal placeholders (will be opened when session starts) -->
+  <!-- XO Modal -->
   <div id="xoModal" class="modal" aria-hidden="true">
     <div class="modalCard">
-      <h3>XO — بدء المباراة</h3>
-      <div id="xoArea">جارٍ فتح اللعبة...</div>
-      <div style="margin-top:12px"><button class="btn" onclick="closeXOModal()">إغلاق</button></div>
+      <h3>XO — المباراة</h3>
+      <div class="card" style="margin-bottom:10px">
+        <div class="small muted">دور: <span id="xoTurn">—</span> · أنت: <strong id="xoMyRole">—</strong></div>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+          <button id="claimXBtn" class="btn">مطالبة X</button>
+          <button id="claimOBtn" class="btn">مطالبة O</button>
+          <button id="resetXOBtn" class="btn">إعادة تعيين</button>
+        </div>
+      </div>
+      <div id="xoGrid" class="xoGrid"></div>
+      <div style="margin-top:12px">
+        <button class="btn" onclick="closeXOModal()">إغلاق</button>
+      </div>
     </div>
   </div>
 
+  <!-- Letters Modal -->
   <div id="lettersModal" class="modal" aria-hidden="true">
     <div class="modalCard">
-      <h3>تحدي الحروف — بدء المباراة</h3>
-      <div id="lettersArea">جارٍ فتح اللعبة...</div>
-      <div style="margin-top:12px"><button class="btn" onclick="closeLettersModal()">إغلاق</button></div>
+      <h3>تحدي الحروف — المباراة</h3>
+      <div class="card" style="margin-bottom:8px">
+        <div class="small muted">اسم الفريق 1: <span id="team1NameUI">الفريق1</span> · اسم الفريق 2: <span id="team2NameUI">الفريق2</span></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="claimTeam1BtnModal" class="btn">انضم كـ فريق1</button>
+          <button id="claimTeam2BtnModal" class="btn">انضم كـ فريق2</button>
+          <button id="resetLettersBtn" class="btn">إعادة ضبط الشبكة</button>
+        </div>
+      </div>
+
+      <div id="lettersGrid" class="lettersGrid"></div>
+
+      <div style="margin-top:12px">
+        <button class="btn" onclick="closeLettersModal()">إغلاق</button>
+      </div>
     </div>
   </div>
 
+  <!-- Board Modal -->
   <div id="boardModal" class="modal" aria-hidden="true">
     <div class="modalCard">
-      <h3>لوحة الأسئلة — بدء الجلسة</h3>
-      <div id="boardArea">جارٍ فتح اللعبة...</div>
+      <h3>لوحة الأسئلة — المباراة</h3>
+      <div id="boardArea"></div>
       <div style="margin-top:12px"><button class="btn" onclick="closeBoardModal()">إغلاق</button></div>
+    </div>
+  </div>
+
+  <!-- Question reveal modal (used inside board modal) -->
+  <div id="questionModal" class="modal" aria-hidden="true">
+    <div class="modalCard">
+      <div id="qText" class="qText">سؤال...</div>
+      <div class="muted small" id="qMeta">—</div>
+      <div style="margin-top:8px;display:flex;gap:8px;justify-content:center">
+        <button id="revealAnswerBtn" class="btn primary">إظهار الإجابة</button>
+        <button id="awardTeam1Btn" class="btn">امنح للفريق 1</button>
+        <button id="awardTeam2Btn" class="btn">امنح للفريق 2</button>
+        <button id="closeQuestionBtn" class="btn">إغلاق</button>
+      </div>
+      <div id="qAnswer" class="card" style="margin-top:10px;display:none"></div>
     </div>
   </div>
 
