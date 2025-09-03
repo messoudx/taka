@@ -3,128 +3,118 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>فعاليات الأصدقاء — دخول</title>
+  <title>فعاليات الأصدقاء</title>
+
+  <!-- خطوط عصرية -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="wrap" id="landing">
-    <header>
-      <div class="title">فعاليات الأصدقاء — ادخل للغرفة</div>
-    </header>
+  <!-- Landing (login) -->
+  <main class="wrap center-card" id="landing">
+    <div class="card landing-card" role="form" aria-labelledby="appTitle">
+      <h1 id="appTitle">فعاليات الأصدقاء</h1>
 
-    <section class="card">
-      <label>الاسم المستعار</label>
-      <input id="nickInput" placeholder="اكتب اسمك المستعار" />
+      <label class="label">اسم مستعار</label>
+      <input id="nickInput" placeholder="اكتب اسمك المستعار" autocomplete="off" />
 
-      <label style="margin-top:8px">رمز المستخدم (خاص بك)</label>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input id="userCodeInput" readonly />
-        <button id="regenCode" class="btn">تجديد</button>
+      <label class="label" style="margin-top:10px">أدخل كود الدخول (سيُزوّد من المدير)</label>
+      <input id="userCodeInput" placeholder="أدخل كود الدخول هنا" autocomplete="off" />
+
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <button id="loginBtn" class="btn primary" style="flex:1">دخول</button>
+        <button id="clearLocal" class="btn" title="مسح بيانات جهازك" style="flex:1">مسح البيانات</button>
       </div>
 
-      <label style="margin-top:8px">رمز الغرفة</label>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input id="roomInput" placeholder="مثال: room123" />
+      <p class="muted small" style="margin-top:12px">ملاحظة: الكود يجب أن يكون مُسجّلًا مسبقًا من قِبلك. لا تشارك كودك علنًا.</p>
+    </div>
+  </main>
+
+  <!-- Games / Lobby (hidden until login) -->
+  <main class="wrap" id="gamesPage" style="display:none">
+    <header class="games-header">
+      <div>
+        <div class="meBox" id="meBox"></div>
+        <div class="muted small">ادخل إلى غرفة أو أنشئ واحدة للعب مع أصدقائك</div>
+      </div>
+
+      <div class="roomControls">
+        <input id="roomInput" placeholder="أدخل رمز الغرفة" />
         <button id="createRoomBtn" class="btn">إنشاء</button>
         <button id="joinRoomBtn" class="btn primary">انضم</button>
       </div>
-
-      <small class="small" style="display:block;margin-top:10px">بعد الانضمام ستنتقل تلقائياً إلى صفحة الألعاب، وسيُحفظ رمز المستخدم باسم قابل للمشاركة.</small>
-    </section>
-
-    <footer style="margin-top:12px;font-size:12px;color:#666">مُدعوم بـ Firebase Realtime Database — تأكد من وضع firebaseConfig في الملف app.js</footer>
-  </main>
-
-  <!-- صفحة الألعاب (تظهر بعد الانضمام) -->
-  <main class="wrap" id="gamesPage" style="display:none">
-    <header>
-      <div class="title">العب الآن</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <div class="teamBox" style="min-width:200px">
-          <div style="font-weight:800;margin-bottom:6px">أنت</div>
-          <div id="meBox"></div>
-        </div>
-        <div class="teamBox" style="min-width:200px">
-          <div style="font-weight:800;margin-bottom:6px">الغرفة</div>
-          <div id="roomBox"></div>
-        </div>
-      </div>
     </header>
 
-    <div class="headerRow">
-      <div class="small">الحالة: <span id="connStatus">غير متصل</span></div>
-      <div class="small">اللاعبون في الغرفة:</div>
-    </div>
-
-    <div style="display:flex;gap:12px;align-items:flex-start;margin-top:12px">
-      <div style="flex:1">
-        <div class="leaderboard" id="playersList">لا أحد</div>
-
-        <!-- إدارة أسماء الفرق -->
-        <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
-          <div style="flex:1">
-            <label>اسم الفريق الأول</label>
-            <input id="team1NameInput" placeholder="مثال: الفريق البرتقالي" />
-          </div>
-          <div style="flex:1">
-            <label>اسم الفريق الثاني</label>
-            <input id="team2NameInput" placeholder="مثال: الفريق الأزرق" />
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <button id="saveTeamsBtn" class="btn primary">حفظ الأسماء</button>
-            <button id="claimTeam1Btn" class="btn">انضم كـ فريق1</button>
-            <button id="claimTeam2Btn" class="btn">انضم كـ فريق2</button>
-          </div>
+    <section class="content">
+      <aside class="leftCol">
+        <div class="card">
+          <strong>اللاعبون في الغرفة</strong>
+          <div id="playersList" style="margin-top:8px">لم تنضم إلى غرفة بعد</div>
         </div>
 
-        <h4 style="margin-top:12px">الألعاب</h4>
-        <div class="gamesGrid" id="gamesGrid">
-          <div class="gameCard">
-            <h4>لوحة الأسئلة (فرق)</h4>
-            <p class="small">أسئلة تُمنح نقاطًا للفريق الذي يختاره المُدرّج.</p>
-            <div style="display:flex;gap:8px"><button class="btn primary" data-game="board" onclick="requestGame('board')">اطلب اللعب</button></div>
-          </div>
-
-          <div class="gameCard">
-            <h4>XO (1 ضد 1)</h4>
-            <p class="small">تيك-تاك-تو بين لاعبين — ادعِ لاعبًا أو اطلب خصمًا.</p>
-            <div style="display:flex;gap:8px"><button class="btn primary" data-game="xo" onclick="requestGame('xo')">اطلب لعب XO</button></div>
-          </div>
-
-          <div class="gameCard">
-            <h4>تحدي الحروف (فريق أو 1v1)</h4>
-            <p class="small">شبكة 5×5. اختيارك ليكون كلاعب فردي أو انضمام كفريق.</p>
-            <div style="display:flex;gap:8px"><button class="btn primary" data-game="letters" onclick="requestGame('letters')">اطلب التحدي</button></div>
+        <div class="card" style="margin-top:12px">
+          <strong>الألعاب</strong>
+          <div style="display:grid;gap:8px;margin-top:8px">
+            <button class="btn game-request primary" data-game="board" onclick="requestGame('board')">اطلب: لوحة الأسئلة (فرق)</button>
+            <button class="btn game-request" data-game="xo" onclick="requestGame('xo')">اطلب: XO (1v1)</button>
+            <button class="btn game-request" data-game="letters" onclick="requestGame('letters')">اطلب: تحدي الحروف</button>
           </div>
         </div>
-      </div>
+      </aside>
 
-      <aside style="width:320px">
-        <div class="card" style="padding:10px">
+      <main class="mainCol">
+        <div class="card">
           <strong>الدردشة داخل الغرفة</strong>
-          <div id="chatBox" style="height:260px;overflow:auto;border:1px solid #f1f1f1;padding:8px;margin-top:8px;background:#fff;border-radius:8px"></div>
+          <div id="chatBox" class="chatBox"></div>
           <div style="display:flex;gap:8px;margin-top:8px">
-            <input id="chatInput" placeholder="اكتب رسالة..." style="flex:1" />
+            <input id="chatInput" placeholder="اكتب رسالة..." />
             <button id="sendChat" class="btn primary">أرسل</button>
           </div>
         </div>
 
-        <div class="card" style="margin-top:8px;padding:10px">
-          <strong>الإشعارات / الطلبات</strong>
-          <div id="requestsBox" style="min-height:120px;margin-top:8px"></div>
+        <div class="card" style="margin-top:12px">
+          <strong>الطلبات / الإشعارات</strong>
+          <div id="requestsBox" style="margin-top:8px">لا توجد طلبات</div>
         </div>
+      </main>
+    </section>
 
-      </aside>
-    </div>
-
-    <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
       <button id="leaveRoomBtn" class="btn">مغادرة الغرفة</button>
-      <button id="backToLanding" class="btn">العودة</button>
+      <button id="logoutBtn" class="btn">تسجيل خروج</button>
     </div>
   </main>
 
+  <!-- Simple modal placeholders (will be opened when session starts) -->
+  <div id="xoModal" class="modal" aria-hidden="true">
+    <div class="modalCard">
+      <h3>XO — بدء المباراة</h3>
+      <div id="xoArea">جارٍ فتح اللعبة...</div>
+      <div style="margin-top:12px"><button class="btn" onclick="closeXOModal()">إغلاق</button></div>
+    </div>
+  </div>
+
+  <div id="lettersModal" class="modal" aria-hidden="true">
+    <div class="modalCard">
+      <h3>تحدي الحروف — بدء المباراة</h3>
+      <div id="lettersArea">جارٍ فتح اللعبة...</div>
+      <div style="margin-top:12px"><button class="btn" onclick="closeLettersModal()">إغلاق</button></div>
+    </div>
+  </div>
+
+  <div id="boardModal" class="modal" aria-hidden="true">
+    <div class="modalCard">
+      <h3>لوحة الأسئلة — بدء الجلسة</h3>
+      <div id="boardArea">جارٍ فتح اللعبة...</div>
+      <div style="margin-top:12px"><button class="btn" onclick="closeBoardModal()">إغلاق</button></div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
   <script src="app.js"></script>
 </body>
 </html>
