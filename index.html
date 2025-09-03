@@ -3,38 +3,36 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>فعاليات الأصدقاء</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <title>Taka — ألعاب الأنمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Landing (login) -->
   <main class="wrap center-card" id="landing">
     <div class="card landing-card" role="form" aria-labelledby="appTitle">
-      <h1 id="appTitle">فعاليات الأصدقاء</h1>
+      <h1 id="appTitle">Taka — Anime Power</h1>
 
       <label class="label">اسم مستعار</label>
       <input id="nickInput" placeholder="اكتب اسمك المستعار" autocomplete="off" />
 
-      <label class="label" style="margin-top:10px">أدخل كود الدخول (سيُزوَّد من المدير)</label>
+      <label class="label" style="margin-top:10px">كود الدخول (مستخدم لمرة واحدة)</label>
       <input id="userCodeInput" placeholder="أدخل كود الدخول هنا" autocomplete="off" />
 
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
         <button id="loginBtn" class="btn primary" style="flex:1">دخول</button>
-        <button id="clearLocal" class="btn" title="مسح بيانات جهازك" style="flex:1">مسح البيانات</button>
+        <button id="clearLocal" class="btn" style="flex:1">مسح البيانات</button>
       </div>
 
-      <p class="muted small" style="margin-top:12px">ملاحظة: الكود يجب أن يكون مُسجّلًا مسبقًا من قِبلك. لا تشارك كودك علنًا.</p>
+      <p class="muted small" style="margin-top:12px">ملاحظة: الكود له استخدام فردي ويجب أن يُنشأ مسبقاً في لوحة الإدارة.</p>
     </div>
   </main>
 
-  <!-- Games / Lobby (hidden until login) -->
+  <!-- Lobby / Games page -->
   <main class="wrap" id="gamesPage" style="display:none">
     <header class="games-header">
       <div>
         <div class="meBox" id="meBox"></div>
-        <div class="muted small">ادخل إلى غرفة أو أنشئ واحدة للعب مع أصدقائك</div>
+        <div class="muted small">أنشئ غرفة جديدة أو انضم لغرفة موجودة (لا يمكنك الانضمام إلا لغرفة مُنشأة سابقاً)</div>
       </div>
 
       <div class="roomControls">
@@ -54,9 +52,9 @@
         <div class="card" style="margin-top:12px">
           <strong>الألعاب</strong>
           <div style="display:grid;gap:8px;margin-top:8px">
-            <button class="btn game-request primary" data-game="board" onclick="requestGame('board')">اطلب: لوحة الأسئلة (فرق)</button>
-            <button class="btn game-request" data-game="xo" onclick="requestGame('xo')">اطلب: XO (1v1)</button>
-            <button class="btn game-request" data-game="letters" onclick="requestGame('letters')">اطلب: تحدي الحروف</button>
+            <button id="reqBoard" class="btn game-request" data-game="board">اطلب: لوحة الأسئلة (فرق)</button>
+            <button id="reqXO" class="btn game-request" data-game="xo">اطلب: XO (1v1)</button>
+            <button id="reqLetters" class="btn game-request" data-game="letters">اطلب: تحدي الحروف</button>
           </div>
         </div>
       </aside>
@@ -75,6 +73,11 @@
           <strong>الطلبات / الإشعارات</strong>
           <div id="requestsBox" style="margin-top:8px">لا توجد طلبات</div>
         </div>
+
+        <div class="card" style="margin-top:12px">
+          <strong>جلسات حالية</strong>
+          <div id="sessionsBox" style="margin-top:8px">لا توجد جلسات نشطة</div>
+        </div>
       </main>
     </section>
 
@@ -84,74 +87,19 @@
     </div>
   </main>
 
-  <!-- XO Modal -->
-  <div id="xoModal" class="modal" aria-hidden="true">
-    <div class="modalCard">
-      <h3>XO — المباراة</h3>
-      <div class="card" style="margin-bottom:10px">
-        <div class="small muted">دور: <span id="xoTurn">—</span> · أنت: <strong id="xoMyRole">—</strong></div>
-        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
-          <button id="claimXBtn" class="btn">مطالبة X</button>
-          <button id="claimOBtn" class="btn">مطالبة O</button>
-          <button id="resetXOBtn" class="btn">إعادة تعيين</button>
-        </div>
-      </div>
-      <div id="xoGrid" class="xoGrid"></div>
-      <div style="margin-top:12px">
-        <button class="btn" onclick="closeXOModal()">إغلاق</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Letters Modal -->
-  <div id="lettersModal" class="modal" aria-hidden="true">
-    <div class="modalCard">
-      <h3>تحدي الحروف — المباراة</h3>
-      <div class="card" style="margin-bottom:8px">
-        <div class="small muted">اسم الفريق 1: <span id="team1NameUI">الفريق1</span> · اسم الفريق 2: <span id="team2NameUI">الفريق2</span></div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button id="claimTeam1BtnModal" class="btn">انضم كـ فريق1</button>
-          <button id="claimTeam2BtnModal" class="btn">انضم كـ فريق2</button>
-          <button id="resetLettersBtn" class="btn">إعادة ضبط الشبكة</button>
-        </div>
-      </div>
-
-      <div id="lettersGrid" class="lettersGrid"></div>
-
-      <div style="margin-top:12px">
-        <button class="btn" onclick="closeLettersModal()">إغلاق</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Board Modal -->
-  <div id="boardModal" class="modal" aria-hidden="true">
-    <div class="modalCard">
-      <h3>لوحة الأسئلة — المباراة</h3>
-      <div id="boardArea"></div>
-      <div style="margin-top:12px"><button class="btn" onclick="closeBoardModal()">إغلاق</button></div>
-    </div>
-  </div>
-
-  <!-- Question reveal modal (used inside board modal) -->
-  <div id="questionModal" class="modal" aria-hidden="true">
-    <div class="modalCard">
-      <div id="qText" class="qText">سؤال...</div>
-      <div class="muted small" id="qMeta">—</div>
-      <div style="margin-top:8px;display:flex;gap:8px;justify-content:center">
-        <button id="revealAnswerBtn" class="btn primary">إظهار الإجابة</button>
-        <button id="awardTeam1Btn" class="btn">امنح للفريق 1</button>
-        <button id="awardTeam2Btn" class="btn">امنح للفريق 2</button>
-        <button id="closeQuestionBtn" class="btn">إغلاق</button>
-      </div>
-      <div id="qAnswer" class="card" style="margin-top:10px;display:none"></div>
-    </div>
-  </div>
+  <!-- game modals (XO / Letters / Board) - محتواها تُملأ من ملفات الجافاسكربت المنفصلة -->
+  <div id="xoModal" class="modal" aria-hidden="true"><div class="modalCard" id="xoModalCard"></div></div>
+  <div id="lettersModal" class="modal" aria-hidden="true"><div class="modalCard" id="lettersModalCard"></div></div>
+  <div id="boardModal" class="modal" aria-hidden="true"><div class="modalCard" id="boardModalCard"></div></div>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
-  <script src="app.js"></script>
+  <!-- core app and separated games -->
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/xo.js"></script>
+  <script type="module" src="js/letters.js"></script>
+  <script type="module" src="js/board.js"></script>
 </body>
 </html>
