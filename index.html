@@ -2,57 +2,144 @@
 <html lang="ar">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>فعاليات الأصدقاء — ألعاب بسيطة</title>
-  <style>
-    body{font-family:system-ui,Arial;direction:rtl;padding:20px;background:#0f172a;color:#e6eef8}
-    .card{background:#0b1220;padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,.6);margin-bottom:18px}
-    h1{font-size:20px;margin:0 0 12px}
-    .nav{display:flex;gap:8px;margin-bottom:12px}
-    button{cursor:pointer;padding:8px 12px;border-radius:8px;border:0;background:#2563eb;color:white}
-    input{padding:8px;border-radius:8px;border:1px solid #233042;background:#081020;color:#e6eef8}
-    /* TicTacToe grid */
-    .grid{display:grid;grid-template-columns:repeat(3,80px);gap:8px;margin-top:12px}
-    .cell{width:80px;height:80px;display:flex;align-items:center;justify-content:center;background:#071127;border-radius:10px;font-size:32px;user-select:none}
-    .small{font-size:14px}
-    /* memory */
-    .memory-board{display:grid;grid-template-columns:repeat(4,70px);gap:8px}
-    .tile{width:70px;height:70px;display:flex;align-items:center;justify-content:center;background:#081827;border-radius:8px;font-weight:bold;font-size:22px;cursor:pointer}
-    .hidden{background:#072033}
-  </style>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#ff6a00">
+  <title>فعاليات الأصدقاء — ألعاب أونلاين</title>
+
+  <style>/* ======= STYLES (اخترت نفس ستايلك مع بعض التعديلات الطفيفة) */
+/* global */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --bg:#f6f6f6;
+  --panel:#ffffff;
+  --muted:#263238;
+  --accent:#ff6a00;
+  --accent-2:#ff8a33;
+  --blue:#3aa0ff;
+  --danger:#7f8c8d;
+  --pill:#fff7f0;
+  --card-shadow: 0 12px 40px rgba(37,37,37,0.08);
+  --gap:12px;
+  --safe-bottom: env(safe-area-inset-bottom, 12px);
+}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,'Noto Sans Arabic',Tahoma,Arial;direction:rtl;background:var(--bg);color:var(--muted);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+.wrap{width:100%;max-width:1200px;margin:0 auto;padding:14px 12px calc(84px + var(--safe-bottom));min-height:100vh;display:flex;flex-direction:column;gap:var(--gap)}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:12px;flex-wrap:wrap}
+.title{flex:0 0 auto;font-weight:900;font-size:18px}
+.teamBox{background:var(--panel);padding:10px 14px;border-radius:12px;box-shadow:var(--card-shadow);display:flex;flex-direction:column;align-items:center;min-width:160px;justify-content:center}
+.teamBox input{border:none;background:transparent;font-weight:900;text-align:center;color:var(--muted);font-size:15px;width:100%;outline:none;padding:6px 0}
+.gamesGrid{display:grid;gap:12px;grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));align-items:start}
+.gameCard{background:var(--panel);border-radius:12px;padding:14px;text-align:center;box-shadow:var(--card-shadow);display:flex;flex-direction:column;gap:8px;align-items:center;border:1px solid rgba(0,0,0,0.04);min-height:120px}
+.gameCard h4{margin:0;font-weight:900}
+.valuePill{display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,rgba(255,106,0,0.12),rgba(255,138,51,0.06));height:64px;border-radius:36px;font-weight:900;color:var(--accent);cursor:pointer;font-size:clamp(16px,4vw,20px);box-shadow:0 8px 22px rgba(255,106,0,0.06);transition:transform .14s,box-shadow .14s;user-select:none}
+.controls{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 12px;padding-bottom:calc(var(--safe-bottom) + 8px);background:linear-gradient(180deg, rgba(246,246,246,0.95), rgba(246,246,246,0.98));border-top:1px solid rgba(0,0,0,0.04); z-index:50; box-shadow:0 -6px 18px rgba(0,0,0,0.05);}
+.btn{background:transparent;border-radius:10px;padding:10px 12px;border:1px solid rgba(0,0,0,0.06);cursor:pointer;color:var(--muted);font-weight:800}
+.btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;color:#fff}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:99999;padding:12px}
+.modal.show{display:flex}
+.modalCard{width:100%;max-width:900px;background:var(--panel);border-radius:12px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.04);max-height:90vh;overflow:auto}
+.qText{font-size:20px;color:var(--muted);font-weight:900;text-align:center;line-height:1.2}
+.xoGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:420px;margin:8px auto 4px auto}
+.xoCell{position:relative; aspect-ratio:1/1; border-radius:12px; border:1px solid #e9e9e9; display:flex; align-items:center; justify-content:center; background:#fff; font-weight:900; font-size:36px; cursor:pointer; box-shadow:var(--card-shadow); transition:transform .12s;}
+.xoCell.used{cursor:not-allowed;opacity:.9}
+.hex{position:relative;background:#fff;border-radius:8px;box-shadow:var(--card-shadow);cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:28px;user-select:none;clip-path: polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0% 50%);aspect-ratio:1/1;border:1px solid #eee}
+.small{font-size:13px;opacity:.8}
+.headerRow{display:flex;gap:8px;align-items:center;justify-content:space-between;width:100%}
+.leaderboard{background:var(--panel);padding:10px;border-radius:8px;box-shadow:var(--card-shadow);}
+</style>
 </head>
 <body>
-  <div class="card">
-    <h1>فعاليات سريعة للأصدقاء — ألعاب ذهنية</h1>
-    <div class="small">اختر لعبة: العب محلياً أو ادعُ صديق بالدخول بنفس رمز الغرفة للعب أونلاين.</div>
-    <div class="nav">
-      <button id="show-memory">لعبة الذاكرة (محلي)</button>
-      <button id="show-tic">تيك-تاك-تو (أونلاين)</button>
+  <div class="wrap">
+    <header>
+      <div class="title">فعاليات الأصدقاء — أونلاين</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="teamBox" style="min-width:220px">
+          <div style="font-weight:800;margin-bottom:6px">اسمك</div>
+          <input id="nickInput" placeholder="الاسم المستعار (مثلاً: محمد)" />
+        </div>
+        <div class="teamBox" style="min-width:220px">
+          <div style="font-weight:800;margin-bottom:6px">دخول غرفة</div>
+          <div style="display:flex;gap:6px">
+            <input id="roomInput" placeholder="room123" style="flex:1" />
+            <button id="createRoomBtn" class="btn">إنشاء</button>
+            <button id="joinRoomBtn" class="btn primary">انضم</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="mainArea">
+      <div class="headerRow">
+        <div class="small">الحالة: <span id="connStatus">غير متصل</span></div>
+        <div class="small">الغرفة: <strong id="currentRoom">—</strong></div>
+      </div>
+
+      <div id="lobbyGames">
+        <div class="gamesGrid" id="gamesGrid" role="list" aria-label="قائمة الألعاب">
+          <div class="gameCard" role="listitem">
+            <h4>لوحة الأسئلة (أونلاين)</h4>
+            <p class="small">اسأل، اكشف الإجابة، وسجّل النقاط لجميع اللاعبين داخل الغرفة.</p>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button id="openBoardBtn" class="btn primary">افتح اللوحة</button>
+            </div>
+          </div>
+
+          <div class="gameCard" role="listitem">
+            <h4>XO (تفاعل أونلاين)</h4>
+            <p class="small">تيك-تاك-تو بمزامنة بين لاعبين في نفس الغرفة (X / O).</p>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button id="openXOBtn" class="btn primary">افتح XO</button>
+            </div>
+          </div>
+
+          <div class="gameCard" role="listitem">
+            <h4>تحدي الحروف (خانة 5×5)</h4>
+            <p class="small">اضغط حرفًا، اكشف سؤالًا، وعلّم الخانة باسم الفريق (X أو O).</p>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button id="openLettersBtn" class="btn primary">ابدأ التحدي</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px" class="leaderboard">
+          <strong>قائمة اللاعبين في الغرفة</strong>
+          <div id="playersList" style="margin-top:8px">لا أحد</div>
+        </div>
+      </div>
+
+      <!-- اللوحة التي كانت محلياً، الآن تُستخدم كمؤشر للـ online board -->
+      <div id="boardArea" style="display:none;margin-top:18px"></div>
+    </main>
+  </div>
+
+  <!-- modals: board, xo, letters (تبسيط لعرض الحالة الأونلاين) -->
+  <div id="boardModal" class="modal" aria-hidden="true">
+    <div class="modalCard">
+      <h3>لوحة الأسئلة — أونلاين</h3>
+      <div id="remoteBoard" style="width:100%"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="closeBoardModal" class="btn">إغلاق</button>
+      </div>
     </div>
   </div>
 
-  <!-- Memory (local) -->
-  <div id="memory" class="card" style="display:none">
-    <h2>لعبة الذاكرة</h2>
-    <div class="small">اضغط على مربعين لتطابق الرموز.</div>
-    <div id="memoryBoard" class="memory-board" style="margin-top:12px"></div>
-    <div style="margin-top:10px"><button id="resetMemory">إعادة</button></div>
+  <div id="xoModal" class="modal" aria-hidden="true">
+    <div class="modalCard">
+      <h3>XO — أونلاين</h3>
+      <div class="small">دور: <span id="xoTurn">—</span> · أنت: <strong id="myRole">—</strong></div>
+      <div class="xoGrid" id="xoGrid"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="closeXO" class="btn">إغلاق</button>
+      </div>
+    </div>
   </div>
 
-  <!-- TicTacToe (online via Firebase) -->
-  <div id="tic" class="card" style="display:none">
-    <h2>تيك-تاك-تو (أونلاين)</h2>
-    <div class="small">انشئ أو انضم إلى غرفة مشتركة: شارك رمز الغرفة مع صديقك.</div>
-    <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-      <input id="roomId" placeholder="رمز الغرفة (مثال: room123)" />
-      <button id="createRoom">إنشاء/دخول</button>
-      <button id="leaveRoom">مغادرة الغرفة</button>
-    </div>
-    <div style="margin-top:10px">
-      <div>الحالة: <span id="status">غير متصل</span></div>
-      <div style="margin-top:10px" class="grid" id="board"></div>
-      <div style="margin-top:10px">
-        <div id="turnInfo"></div>
+  <div id="lettersModal" class="modal" aria-hidden="true">
+    <div class="modalCard">
+      <h3>تحدي الحروف — أونلاين</h3>
+      <div class="lettersGrid" id="lettersGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:100%;max-width:560px;margin-top:12px"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="closeLetters" class="btn">إغلاق</button>
       </div>
     </div>
   </div>
@@ -62,169 +149,263 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
   <script>
- // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyC2eUDscOP_Vgq7iFGRQm09soisquGHe9g",
-  authDomain: "taka-e3b3d.firebaseapp.com",
-  databaseURL: "https://taka-e3b3d-default-rtdb.firebaseio.com",
-  projectId: "taka-e3b3d",
-  storageBucket: "taka-e3b3d.firebasestorage.app",
-  messagingSenderId: "719794585832",
-  appId: "1:719794585832:web:1c235cfd14e78b5a92095d",
-  measurementId: "G-6MC3MZZYTZ"
-};
-  // ======= INIT =======
+  // ======= ضع هنا إعدادات Firebase الخاصة بك =======
+  const firebaseConfig = {
+    apiKey: "AIzaSyC2eUDscOP_Vgq7iFGRQm09soisquGHe9g",
+    authDomain: "taka-e3b3d.firebaseapp.com",
+    databaseURL: "https://taka-e3b3d-default-rtdb.firebaseio.com",
+    projectId: "taka-e3b3d",
+    storageBucket: "taka-e3b3d.firebasestorage.app",
+    messagingSenderId: "719794585832",
+    appId: "1:719794585832:web:1c235cfd14e78b5a92095d",
+    measurementId: "G-6MC3MZZYTZ"
+  };
   firebase.initializeApp(firebaseConfig);
   const database = firebase.database();
 
-  // ---- UI switch
-  document.getElementById('show-memory').onclick = ()=>{document.getElementById('memory').style.display='block';document.getElementById('tic').style.display='none'}
-  document.getElementById('show-tic').onclick = ()=>{document.getElementById('memory').style.display='none';document.getElementById('tic').style.display='block'}
+  // ======= حالة الواجهة المحلية =======
+  const nickInput = document.getElementById('nickInput');
+  const roomInput = document.getElementById('roomInput');
+  const createRoomBtn = document.getElementById('createRoomBtn');
+  const joinRoomBtn = document.getElementById('joinRoomBtn');
+  const connStatus = document.getElementById('connStatus');
+  const currentRoomEl = document.getElementById('currentRoom');
+  const playersList = document.getElementById('playersList');
+  const openBoardBtn = document.getElementById('openBoardBtn');
+  const openXOBtn = document.getElementById('openXOBtn');
+  const openLettersBtn = document.getElementById('openLettersBtn');
 
-  // ================= Memory (local) =================
-  const symbols = ['🍎','🍌','🍇','🍒','🍋','🍉','🥝','🍍']; // 8 زوج => 16 مربعات
-  let memBoard = [];
-  let first=null, second=null;
-  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a}
-  function initMemory(){
-    const arr = shuffle(symbols.concat(symbols));
-    memBoard = arr.map((s,i)=>({sym:s,flipped:false,done:false,id:i}));
-    renderMemory();
-  }
-  function renderMemory(){
-    const el = document.getElementById('memoryBoard'); el.innerHTML='';
-    memBoard.forEach(tile=>{
-      const d=document.createElement('div'); d.className='tile '+(tile.flipped||tile.done?'':'hidden');
-      d.textContent = (tile.flipped||tile.done)?tile.sym:'';
-      d.onclick = ()=> {
-        if(tile.flipped||tile.done) return;
-        if(first===null){tile.flipped=true; first=tile; renderMemory(); return}
-        if(second===null){tile.flipped=true; second=tile; renderMemory();
-          // check
-          if(first.sym===second.sym){first.done=true; second.done=true; first=null; second=null}
-          else { setTimeout(()=>{ first.flipped=false; second.flipped=false; first=null; second=null; renderMemory(); },800) }
-        }
-      };
-      el.appendChild(d);
-    });
-  }
-  document.getElementById('resetMemory').onclick = initMemory;
-  initMemory();
+  const boardModal = document.getElementById('boardModal');
+  const remoteBoard = document.getElementById('remoteBoard');
+  const closeBoardModal = document.getElementById('closeBoardModal');
 
-  // ================= TicTacToe (online via Firebase Realtime DB) =================
-  const boardEl = document.getElementById('board');
-  let mySymbol = null; // 'X' or 'O'
+  const xoModal = document.getElementById('xoModal');
+  const xoGrid = document.getElementById('xoGrid');
+  const xoTurnEl = document.getElementById('xoTurn');
+  const myRoleEl = document.getElementById('myRole');
+  const closeXO = document.getElementById('closeXO');
+
+  const lettersModal = document.getElementById('lettersModal');
+  const lettersGrid = document.getElementById('lettersGrid');
+  const closeLetters = document.getElementById('closeLetters');
+
   let roomRef = null;
-  let localRoomId = null;
-  function createBoardUI(){
-    boardEl.innerHTML='';
-    for(let i=0;i<9;i++){
-      const c=document.createElement('div'); c.className='cell'; c.id='cell'+i; c.textContent='';
-      c.onclick = ()=> tryMove(i);
-      boardEl.appendChild(c);
-    }
-  }
-  createBoardUI();
+  let roomId = null;
+  let myPlayerId = null;
+  let myRole = null; // 'X' or 'O' or 'A'/'B'
 
-  function setStatus(t){document.getElementById('status').textContent = t}
-  function setTurnInfo(t){document.getElementById('turnInfo').textContent = t}
+  // utility uid
+  function makeId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
 
-  // create or join room
-  document.getElementById('createRoom').onclick = ()=>{
-    const id = (document.getElementById('roomId').value||'').trim();
-    if(!id){alert('ضع رمز غرفة'); return}
+  // create or join
+  createRoomBtn.addEventListener('click', async ()=>{
+    const id = (roomInput.value||'').trim();
+    if(!id){ alert('ضع رمز غرفة (مثل room123)'); return; }
+    await createRoom(id);
     joinRoom(id);
-  }
-  document.getElementById('leaveRoom').onclick = ()=>{
-    if(roomRef && localRoomId){
-      roomRef.off(); roomRef=null; localRoomId=null; mySymbol=null; setStatus('غير متصل'); setTurnInfo(''); createBoardUI();
+  });
+  joinRoomBtn.addEventListener('click', ()=>{
+    const id = (roomInput.value||'').trim();
+    if(!id){ alert('ضع رمز غرفة للانضمام'); return; }
+    joinRoom(id);
+  });
+
+  async function createRoom(id){
+    const ref = database.ref('rooms/' + id);
+    const snap = await ref.once('value');
+    if(snap.exists()){
+      // already exists
+      return;
     }
+    const init = {
+      meta:{createdAt:Date.now()},
+      players:{},
+      scores:{A:0,B:0},
+      xo:{board:Array(9).fill(''),turn:'X',winner:''},
+      letters:{board:Array(25).fill(''),winner:''},
+      boardCells:{}
+    };
+    await ref.set(init);
   }
+
+  function setStatus(s){ connStatus.innerText = s; }
 
   async function joinRoom(id){
-    localRoomId = id;
-    roomRef = database.ref('rooms/' + id);
-    setStatus('محاولة الانضمام...');
-    // read once to see room state
-    const snap = await roomRef.once('value');
-    let data = snap.val();
-    if(!data){
-      // create room
-      const newRoom = {board:Array(9).fill(''),turn:'X',players:{X:true},winner:''};
-      await roomRef.set(newRoom);
-      mySymbol = 'X';
-      setStatus('أنشأت الغرفة — أنت X');
-    } else {
-      // join as O if available
-      if(!data.players || !data.players.O){
-        await roomRef.child('players/O').set(true);
-        mySymbol = 'O';
-        setStatus('انضممت للغرفة — أنت O');
-      } else {
-        alert('القاعة ممتلئة (2 لاعبين فقط). اختر رمز آخر أو أنشئ غرفة جديدة.');
-        roomRef.off(); roomRef=null; localRoomId=null; return;
-      }
-    }
-    // start listening للاختلافات
+    if(!nickInput.value.trim()){ alert('اكتب اسمك أولاً'); return; }
+    roomId = id;
+    currentRoomEl.innerText = roomId;
+    roomRef = database.ref('rooms/' + roomId);
+    myPlayerId = makeId();
+    // ask user which side
+    const side = prompt('اختر جانبك: اكتب X للعب XO / X أو O ، أو A للفريق الأول ، O للفريق الثاني في ألعاب الفريق. اترك فارغًا للمتفرج. (اكتب X / O / A / B)');
+    if(side && ['X','O','A','B'].includes(side.toUpperCase())) myRole = side.toUpperCase(); else myRole = '';
+    // write player node
+    await roomRef.child('players/' + myPlayerId).set({name:nickInput.value.trim(),role:myRole,joinedAt:Date.now()});
+    setStatus('متصل');
+    // listen to room changes
     roomRef.on('value', snap => {
-      const val = snap.val();
-      if(!val) return;
-      renderGameState(val);
+      const data = snap.val();
+      if(!data) return;
+      renderPlayers(data.players || {});
+      renderXOState(data.xo || {});
+      renderLettersState(data.letters || {});
+      renderBoardState(data.boardCells || {}, data.scores || {});
     });
+    // handle disconnect: remove player
+    const playerRef = roomRef.child('players/' + myPlayerId);
+    playerRef.onDisconnect().remove();
   }
 
-  function renderGameState(state){
-    // update board UI
-    state.board.forEach((v,i)=>{
-      const el = document.getElementById('cell'+i);
-      if(el) el.textContent = v;
-    });
-    if(state.winner){
-      setTurnInfo('انتهت اللعبة — الفائز: ' + state.winner);
-    } else {
-      setTurnInfo('دور: ' + state.turn + (mySymbol?(' — أنت: '+mySymbol):''));
+  function renderPlayers(players){
+    const keys = Object.keys(players||{});
+    if(keys.length===0) playersList.innerText = 'لا أحد';
+    else{
+      playersList.innerHTML = keys.map(k=>{
+        const p = players[k];
+        return `<div style="padding:6px;border-bottom:1px solid #f3f3f3"><strong>${escapeHtml(p.name||'—')}</strong> <span style="font-size:12px;color:#666">${p.role?('· '+p.role):''}</span></div>`;
+      }).join('');
     }
   }
 
-  async function tryMove(i){
-    if(!roomRef){alert('انضم لغرفة أولاً'); return}
-    const snap = await roomRef.once('value');
-    const room = snap.val();
-    if(room.winner) return alert('اللعبة انتهت');
-    if(room.board[i]) return; // مش فاضي
-    if(room.turn !== mySymbol) return alert('ليست حركتك');
-    // perform move
-    room.board[i] = mySymbol;
+  // ======= BOARD (الأسئلة) synchronization =======
+  // We'll reuse categories from localStorage like قبل
+  let categories = JSON.parse(localStorage.getItem('wj_categories')) || [];
+  if(!categories.length) {
+    // minimal fallback categories
+    categories = [ {name:'عام', qs:[{v:100,q:'سؤال تجريبي 1',a:'إجابة 1'},{v:200,q:'سؤال تجريبي 2',a:'إجابة 2'}]} ];
+  }
+
+  function renderBoardState(cells,scores){
+    // cells is an object with keys like 'c0_r0' -> {disabled:true}
+    remoteBoard.innerHTML = '';
+    categories.forEach((cat,ci)=>{
+      const section = document.createElement('div'); section.style.marginBottom='12px';
+      const title = document.createElement('div'); title.style.fontWeight='900'; title.innerText = cat.name; section.appendChild(title);
+      const values = document.createElement('div'); values.style.display='flex'; values.style.gap='8px'; values.style.flexWrap='wrap'; values.style.marginTop='8px';
+      cat.qs.forEach((q,ri)=>{
+        const key = `c${ci}_r${ri}`;
+        const pill = document.createElement('div'); pill.className='valuePill'; pill.innerText = q.v; pill.style.minWidth='80px';
+        if(cells && cells[key] && cells[key].disabled){ pill.classList.add('disabled'); pill.style.opacity='0.5'; }
+        pill.addEventListener('click', async ()=>{
+          // open question modal locally for this user — revealing and awarding will update DB
+          openQuestionLocal(ci,ri,key);
+        });
+        values.appendChild(pill);
+      });
+      section.appendChild(values);
+      remoteBoard.appendChild(section);
+    });
+    // scores display
+    const scoreBox = document.createElement('div'); scoreBox.style.marginTop='8px'; scoreBox.innerHTML = `<div class="small">نقاط A: ${scores.A||0} · نقاط B: ${scores.B||0}</div>`;
+    remoteBoard.appendChild(scoreBox);
+  }
+
+  async function openQuestionLocal(ci,ri, key){
+    const q = categories[ci].qs[ri];
+    // show prompt for reveal/award
+    const show = confirm(`السؤال:\n${q.q}\n\nاضغط موافق لإظهار الإجابة وإعطاء النقاط.`);
+    if(!show) return;
+    alert('الإجابة: ' + (q.a || 'لم تُسجّل إجابة'));
+    const give = prompt('من يعطي النقاط؟ اكتب A أو B أو NONE');
+    if(give && (give.toUpperCase()==='A' || give.toUpperCase()==='B')){
+      // update scores and disable cell
+      await roomRef.child('scores/' + give.toUpperCase()).transaction(old=> (old||0) + Number(q.v));
+      await roomRef.child('boardCells/' + key).set({disabled:true,by:myPlayerId,at:Date.now()});
+    } else {
+      // mark disabled without points
+      await roomRef.child('boardCells/' + key).set({disabled:true,by:myPlayerId,at:Date.now()});
+    }
+  }
+
+  closeBoardModal.addEventListener('click', ()=>{ boardModal.classList.remove('show'); });
+  openBoardBtn.addEventListener('click', ()=>{ boardModal.classList.add('show'); });
+
+  // ======= XO online =======
+  function renderXOState(xo){
+    // xo: {board:[], turn:'X', winner:''}
+    xoGrid.innerHTML = '';
+    const board = xo.board || Array(9).fill('');
+    board.forEach((v,idx)=>{
+      const cell = document.createElement('div'); cell.className='xoCell'; cell.dataset.idx = idx; cell.innerText = v || '؟';
+      if(v) cell.classList.add('used');
+      cell.addEventListener('click', ()=>{
+        tryPlaceXO(idx);
+      });
+      xoGrid.appendChild(cell);
+    });
+    xoTurnEl.innerText = xo.turn || '—';
+    myRoleEl.innerText = myRole || '—';
+  }
+
+  async function tryPlaceXO(idx){
+    if(!roomRef) return alert('انضم لغرفة أولاً');
+    const snap = await roomRef.child('xo').once('value');
+    const xo = snap.val() || {board:Array(9).fill(''),turn:'X',winner:''};
+    if(xo.winner) return alert('اللعبة انتهت');
+    if(xo.board[idx]) return alert('الخانة مستخدمة');
+    // ensure player role matches (must be X or O)
+    if(!myRole || (myRole!=='X' && myRole!=='O')){
+      return alert('لكي تلعب XO اختر الدور X أو O عند الانضمام للغرفة');
+    }
+    if(xo.turn !== myRole) return alert('ليست حركتك الآن');
+    // place
+    xo.board[idx] = myRole;
     // check win
-    const win = checkWinner(room.board);
-    if(win){
-      room.winner = mySymbol;
-      room.turn = '';
-    } else {
-      room.turn = (room.turn === 'X') ? 'O' : 'X';
-    }
-    await roomRef.set(room);
+    const win = checkXOwin(xo.board);
+    if(win){ xo.winner = myRole; xo.turn = ''; }
+    else{ xo.turn = (xo.turn==='X')?'O':'X'; }
+    await roomRef.child('xo').set(xo);
   }
 
-  function checkWinner(b){
-    const lines = [
-      [0,1,2],[3,4,5],[6,7,8],
-      [0,3,6],[1,4,7],[2,5,8],
-      [0,4,8],[2,4,6]
-    ];
-    for(const [a,c,d] of lines){
-      if(b[a] && b[a]===b[c] && b[a]===b[d]) return b[a];
-    }
-    return null;
+  function checkXOwin(b){
+    const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    for(const l of lines){ const [a,b1,c]=l; if(b[a] && b[a]===b[b1] && b[a]===b[c]) return true; }
+    return false;
   }
 
-  // Cleanup when closed
+  openXOBtn.addEventListener('click', ()=>{ xoModal.classList.add('show'); });
+  closeXO.addEventListener('click', ()=>{ xoModal.classList.remove('show'); });
+
+  // ======= Letters online =======
+  const letters = ['ا','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن'];
+  function renderLettersState(lettersState){
+    lettersGrid.innerHTML = '';
+    const board = (lettersState && lettersState.board) || Array(25).fill('');
+    board.forEach((v,idx)=>{
+      const hex = document.createElement('div'); hex.className='hex'; hex.dataset.idx = idx; hex.innerText = letters[idx];
+      if(v){ hex.classList.add('used'); hex.style.background = (v==='X')? 'linear-gradient(90deg,var(--accent),var(--accent-2))' : 'linear-gradient(90deg,var(--blue),#82c9ff)'; hex.style.color='#fff'; }
+      hex.addEventListener('click', ()=>{ openLetterLocal(idx); });
+      lettersGrid.appendChild(hex);
+    });
+  }
+
+  async function openLetterLocal(idx){
+    if(!roomRef) return alert('انضم لغرفة');
+    const snap = await roomRef.child('letters').once('value');
+    const lettersState = snap.val() || {board:Array(25).fill(''),winner:''};
+    if(lettersState.board[idx]) return alert('الخانة مستخدمة');
+    if(!myRole || (myRole!=='X' && myRole!=='O')) return alert('اختر دور X أو O للتمييز');
+    // mark
+    lettersState.board[idx] = myRole;
+    // check win (5 in row or col)
+    const res = checkLettersWin(lettersState.board);
+    if(res) lettersState.winner = myRole;
+    await roomRef.child('letters').set(lettersState);
+    if(res) alert(`${myRole} فاز!`);
+  }
+  function checkLettersWin(board){ const N=5; for(let r=0;r<N;r++){ const base=r*N; const first=board[base]; if(first && board[base+1]===first && board[base+2]===first && board[base+3]===first && board[base+4]===first) return true; } for(let c=0;c<N;c++){ const first=board[c]; if(first && board[c+N]===first && board[c+2*N]===first && board[c+3*N]===first && board[c+4*N]===first) return true; } return false; }
+
+  openLettersBtn.addEventListener('click', ()=>{ lettersModal.classList.add('show'); });
+  closeLetters.addEventListener('click', ()=>{ lettersModal.classList.remove('show'); });
+
+  // ======= helper escapeHtml =======
+  function escapeHtml(s){ return (s+'').replace(/[&<>"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
+
+  // cleanup on unload
   window.addEventListener('beforeunload', ()=>{
-    if(localRoomId && mySymbol==='O'){
-      // if O leaves, remove player O flag (not necessary but polite)
-      database.ref('rooms/'+localRoomId+'/players/O').remove();
-    }
+    if(roomRef && myPlayerId){ roomRef.child('players/' + myPlayerId).remove(); }
   });
+
   </script>
 </body>
 </html>
