@@ -41,7 +41,7 @@ const reqXO = document.getElementById('reqXO');
 const reqLetters = document.getElementById('reqLetters');
 
 /* local state */
-let me = { id: null, nick: '', code: '' };
+let me = { id: null, nick: 'messoud', code: '12345' };
 let roomId = null; let roomRef = null;
 
 /* helpers */
