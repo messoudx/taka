@@ -64,12 +64,7 @@ function saveLocal(){ localStorage.setItem('taka_user', JSON.stringify(me)); }
 function clearLocalData(){ localStorage.removeItem('taka_user'); me = { id: makeId(), nick:'', code:'' }; nickInput.value=''; userCodeInput.value=''; passwordInput.value=''; alert('تم مسح بيانات الجهاز'); updateMeBox(); }
 function updateMeBox(){ meBox.innerHTML = `<div style="font-weight:900">${escapeHtml(me.nick||'')}</div><div class="muted small">معرّفك المحلي: <code>${escapeHtml(me.id)}</code></div>`; }
 
-/* ===== LOGIN using hashed passwords stored at /users/{username}/passwordHash =====
-   - Admins should store for each user: { passwordHash: "<sha256-hex>", role: "player" }
-   - We compare sha256(enteredPassword) === storedHash
-   - Helper createHashedUser() below for admin use (client-side hashing)
-*/
-
+/* ===== LOGIN using hashed passwords stored at /users/{username}/passwordHash ===== */
 async function handleLogin(){
   const nick = (nickInput.value||'').trim();
   const username = (userCodeInput.value||'').trim();
@@ -81,11 +76,9 @@ async function handleLogin(){
     const snap = await userRef.once('value');
     const userObj = snap.val();
     if(!userObj){ alert('اسم المستخدم غير موجود'); return; }
-    // hash entered password
     const enteredHash = await sha256Hex(pwd);
     if(userObj.passwordHash && userObj.passwordHash === enteredHash){
-      // success
-      // prevent multiple logins optionally by online flag (transaction)
+      // success - prevent simultaneous login
       const onlineRef = userRef.child('online');
       const txn = await onlineRef.transaction(current=>{ if(current) return; return true; });
       if(!txn.committed){ alert('المستخدم متصل الآن من جهاز آخر'); return; }
@@ -164,7 +157,6 @@ leaveRoomBtn.addEventListener('click', async ()=>{
 });
 
 logoutBtn.addEventListener('click', async ()=>{
-  // إزالة علم online في users
   try{
     if(me.code){
       const userRef = database.ref('users/' + me.code);
@@ -217,7 +209,9 @@ window.acceptRequest = async function(reqId){
   if(r.game === 'xo'){
     // assign X to accepter (me), O to requester
     session.roles = { X: me.id, O: r.requesterId };
+    // create session and initial state (state.turn is playerId)
     await roomRef.child('sessions/xo').set(session);
+    await roomRef.child('sessions/xo/state').set({ board: Array(9).fill(''), turn: session.roles.X, winner: '', startedAt: Date.now() });
   } else if(r.game === 'letters' || r.game === 'board'){
     // if 4+ players split into two teams, else requester vs acceptor
     if(playerIds.length >= 4){
@@ -233,14 +227,19 @@ window.acceptRequest = async function(reqId){
       session.roles.team1 = [r.requesterId];
       session.roles.team2 = [me.id];
     }
+    // set session and initial state: team-based turn starting with team1
     await roomRef.child('sessions/' + r.game).set(session);
+    await roomRef.child('sessions/' + r.game + '/state').set({ board: (r.game==='letters'? Array(25).fill('') : {}), turn: 'team1', winner: '', startedAt: Date.now() });
   }
 
   await roomRef.child('requests/' + reqId).remove();
   await roomRef.child('chat').push().set({ name: 'نظام', text: `${me.nick} قبل طلب ${r.requesterName} للعب ${r.game}`, ts: Date.now() });
 };
 
-/* ====== الاستماع للتحديثات في الغرفة ====== */
+/* ====== إدارة المستمعين وحماية من فتح نفس المودال عدة مرات ====== */
+const activeSessions = {}; // gameKey -> startedAt (to avoid reopening same session)
+const cleanupMap = { xo: cleanupXO, letters: cleanupLetters, board: cleanupBoard };
+
 function attachListeners(){
   if(!roomRef) return;
 
@@ -270,16 +269,48 @@ function attachListeners(){
     }).join('');
   });
 
-  // جلسات/ألعاب
+  // جلسات/ألعاب — رصد ذكي حتى لا نفتح نفس المودال مرتين
   roomRef.child('sessions').on('value', snap=>{
     const s = snap.val() || {};
-    const activeKeys = Object.keys(s).filter(k=>s[k] && s[k].active);
-    sessionsBox.innerHTML = activeKeys.length ? activeKeys.map(k=>`<div style="padding:6px;border-bottom:1px solid #f6f6f6">${escapeHtml(k)} — نشطة</div>`).join('') : 'لا توجد جلسات نشطة';
+    const keys = Object.keys(s);
 
-    // route to game handlers
-    if(s.xo && s.xo.active) handleXOSession(roomRef, me);
-    if(s.letters && s.letters.active) handleLettersSession(roomRef, me);
-    if(s.board && s.board.active) handleBoardSession(roomRef, me);
+    // Handle active sessions
+    keys.forEach(key=>{
+      const sess = s[key];
+      if(sess && sess.active){
+        const startedAt = sess.startedAt || (sess.startedAt = Date.now());
+        if(!activeSessions[key] || activeSessions[key] !== startedAt){
+          // New session for this game — route to handler
+          activeSessions[key] = startedAt;
+          if(key === 'xo' && sess.active){
+            handleXOSession(roomRef, me);
+          } else if(key === 'letters' && sess.active){
+            handleLettersSession(roomRef, me);
+          } else if(key === 'board' && sess.active){
+            handleBoardSession(roomRef, me);
+          }
+        }
+      } else {
+        // session exists but inactive or removed -> cleanup if we had it
+        if(activeSessions[key]){
+          // call cleanup if exists
+          if(cleanupMap[key]) try{ cleanupMap[key](); }catch(e){ console.warn(e); }
+          delete activeSessions[key];
+        }
+      }
+    });
+
+    // Also, if a session key previously active is now missing -> cleanup
+    Object.keys(activeSessions).forEach(prevKey=>{
+      if(!s[prevKey] || !s[prevKey].active){
+        if(cleanupMap[prevKey]) try{ cleanupMap[prevKey](); }catch(e){ console.warn(e); }
+        delete activeSessions[prevKey];
+      }
+    });
+
+    // update sessions box for UI
+    const activeKeys = keys.filter(k=>s[k] && s[k].active);
+    sessionsBox.innerHTML = activeKeys.length ? activeKeys.map(k=>`<div style="padding:6px;border-bottom:1px solid #f6f6f6">${escapeHtml(k)} — نشطة</div>`).join('') : 'لا توجد جلسات نشطة';
   });
 }
 
