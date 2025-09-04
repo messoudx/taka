@@ -1,53 +1,71 @@
-// XO Game Logic (لاعب ضد لاعب)
-function startXOSession(sess) {
-  const initState = { 
-    board: Array(9).fill(''), 
-    turn: 'X', 
-    winner: '' 
-  };
-  roomRef.child('sessions/xo').set({ active:true, startedBy: me.id, state:initState });
-}
+// js/xo.js (ES module) - يتوقّف على node: rooms/{roomId}/sessions/xo/state
+export function initXO(){ /* يمكن إضافة DOM templates إن أردت */ }
 
-function openXOModal() {
-  const modal = document.getElementById('xoModal');
-  modal.style.display = 'flex';
-  renderXOGrid();
-  roomRef.child('sessions/xo/state').on('value', snap=>{
-    const state = snap.val();
-    if(!state) return;
-    renderXOGrid(state);
-    if(state.winner) alert(`انتهت اللعبة! الفائز: ${state.winner}`);
-  });
-}
+export async function handleXOSession(roomRef, me){
+  // ensure state exists
+  const stateRef = roomRef.child('sessions/xo/state');
+  const snap = await stateRef.once('value');
+  if(!snap.exists()){ await stateRef.set({ board: Array(9).fill(''), turn:'X', winner:'', startedAt:Date.now() }); }
+  // render modal
+  const modal = document.getElementById('xoModal'); const card = document.getElementById('xoModalCard');
+  card.innerHTML = `
+    <h3>XO — المباراة</h3>
+    <div class="card small muted">الدور: <span id="xoTurn">—</span> · أنت: <strong id="xoMyRole">—</strong></div>
+    <div id="xoGrid" class="xoGrid"></div>
+    <div style="margin-top:12px"><button class="btn" id="closeXOBtn">إغلاق</button></div>
+  `;
+  modal.setAttribute('aria-hidden','false');
+  document.getElementById('closeXOBtn').addEventListener('click', ()=>{ modal.setAttribute('aria-hidden','true'); roomRef.child('sessions/xo/state').off(); });
 
-function renderXOGrid(state={board:Array(9).fill(''), turn:'X'}) {
   const grid = document.getElementById('xoGrid');
   grid.innerHTML = '';
-  state.board.forEach((cell,i)=>{
-    const d = document.createElement('div');
-    d.className = 'xoCell';
-    d.innerText = cell;
-    d.onclick = ()=> clickXOCell(i,state);
-    grid.appendChild(d);
+  for(let i=0;i<9;i++){ const cell = document.createElement('div'); cell.className = 'xoCell'; cell.dataset.idx = i; cell.innerHTML = '؟'; cell.addEventListener('click', ()=>{ if(cell.classList.contains('used')) return; openXOQuestion(i); }); grid.appendChild(cell); }
+
+  // listen to state
+  stateRef.on('value', snap=>{
+    const s = snap.val(); if(!s) return;
+    document.getElementById('xoTurn').innerText = s.turn || '—';
+    stateUpdateUI(s);
   });
+
+  // roles: read roles from session
+  const rolesSnap = await roomRef.child('sessions/xo/roles').once('value'); const roles = rolesSnap.val() || {};
+  const myRole = roles && ((roles.X===me.id)?'X': (roles.O===me.id)?'O': null);
+  document.getElementById('xoMyRole').innerText = myRole || '—';
+
+  async function openXOQuestion(idx){
+    const qSnap = await roomRef.child('sessions/xo/questions').once('value');
+    // for simplicity use a placeholder question if not present
+    const question = qSnap.val() && qSnap.val()[idx] ? qSnap.val()[idx] : { q:'سؤال افتراضي', a:'' };
+    document.getElementById('xoGrid').querySelectorAll('.xoCell')[idx].classList.add('selected');
+    // show Q panel
+    const xoQPanel = document.createElement('div');
+    xoQPanel.className = 'xoQPanel';
+    xoQPanel.innerHTML = `<div class="xoQ">${question.q}</div><div class="xoMeta">—</div><div style="display:flex;gap:8px;margin-top:10px;justify-content:center"><button id="xoMarkX" class="btn primary">X</button><button id="xoMarkO" class="btn primary">O</button></div>`;
+    card.appendChild(xoQPanel);
+    document.getElementById('xoMarkX').addEventListener('click', ()=> placeXO('X', idx, xoQPanel));
+    document.getElementById('xoMarkO').addEventListener('click', ()=> placeXO('O', idx, xoQPanel));
+  }
+
+  async function placeXO(mark, idx, panel){
+    // atomic update on state
+    await stateRef.transaction(cur=>{
+      if(!cur) return cur;
+      if(cur.board[idx]) return; // taken
+      cur.board[idx] = mark;
+      // check win
+      const w = checkWin(cur.board);
+      if(w) cur.winner = w;
+      else cur.turn = cur.turn === 'X' ? 'O' : 'X';
+      return cur;
+    });
+    if(panel && panel.remove) panel.remove();
+  }
+
+  function stateUpdateUI(s){ const cells = grid.querySelectorAll('.xoCell'); cells.forEach((c,i)=>{ c.innerText = s.board[i] || '؟'; c.classList.toggle('used', !!s.board[i]); c.classList.remove('win','selected'); }); if(s.winner){ const winIdx = findWinIndices(s.board); if(winIdx){ winIdx.forEach(i=> grid.children[i].classList.add('win')); } roomRef.child('chat').push().set({name:'نظام', text:`XO — فاز ${s.winner}`, ts:Date.now()}); } }
+
+  function checkWin(b){ const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]; for(const L of lines){ const [a,b1,c]=L; if(b[a] && b[a]===b[b1] && b[a]===b[c]) return b[a]; } return null; }
+  function findWinIndices(b){ const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]; for(const L of lines){ const [a,b1,c]=L; if(b[a] && b[a]===b[b1] && b[a]===b[c]) return L; } return null; }
 }
 
-function clickXOCell(i,state) {
-  if(state.winner || state.board[i]) return;
-  let myRole = null;
-  roomRef.child('sessions/xo/roles').once('value').then(snap=>{
-    const roles = snap.val()||{};
-    for(const role in roles){ if(roles[role].playerId===me.id) myRole=role; }
-    if(!myRole) return;
-    if(state.turn !== myRole) return;
-    state.board[i] = myRole;
-    state.turn = myRole==='X'?'O':'X';
-    if(checkXOwin(state.board)) state.winner=myRole;
-    roomRef.child('sessions/xo/state').set(state);
-  });
-}
-
-function checkXOwin(b){
-  const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-  return lines.some(line=>line.every(i=>b[i]&&b[i]===b[line[0]]));
-}
+export function cleanupXO(){ /* empty for now */ }

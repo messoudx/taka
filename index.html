@@ -15,15 +15,18 @@
       <label class="label">اسم مستعار</label>
       <input id="nickInput" placeholder="اكتب اسمك المستعار" autocomplete="off" />
 
-      <label class="label" style="margin-top:10px">كود الدخول (مستخدم لمرة واحدة)</label>
-      <input id="userCodeInput" placeholder="أدخل كود الدخول هنا" autocomplete="off" />
+      <label class="label" style="margin-top:10px">اسم المستخدم</label>
+      <input id="userCodeInput" placeholder="اسم المستخدم (username)" autocomplete="off" />
+
+      <label class="label" style="margin-top:10px">كلمة المرور</label>
+      <input id="passwordInput" type="password" placeholder="كلمة المرور" autocomplete="off" />
 
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
         <button id="loginBtn" class="btn primary" style="flex:1">دخول</button>
         <button id="clearLocal" class="btn" style="flex:1">مسح البيانات</button>
       </div>
 
-      <p class="muted small" style="margin-top:12px">ملاحظة: الكود له استخدام فردي ويجب أن يُنشأ مسبقاً في لوحة الإدارة.</p>
+      <p class="muted small" style="margin-top:12px">ملاحظة: كلمات السر تُجزَّأ (SHA-256) قبل الإرسال — لا نخزن نص واضح.</p>
     </div>
   </main>
 
@@ -87,7 +90,7 @@
     </div>
   </main>
 
-  <!-- game modals (XO / Letters / Board) - محتواها تُملأ من ملفات الجافاسكربت المنفصلة -->
+  <!-- game modals (XO / Letters / Board) -->
   <div id="xoModal" class="modal" aria-hidden="true"><div class="modalCard" id="xoModalCard"></div></div>
   <div id="lettersModal" class="modal" aria-hidden="true"><div class="modalCard" id="lettersModalCard"></div></div>
   <div id="boardModal" class="modal" aria-hidden="true"><div class="modalCard" id="boardModalCard"></div></div>
