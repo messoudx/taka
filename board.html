@@ -11,19 +11,19 @@
   <header class="topbar">
     <div class="brand-sm">لوحة الأسئلة</div>
     <div id="gameRoomInfo" class="meBox"></div>
-    <div><a href="games.html" class="btn">عودة للألعاب</a></div>
+    <div><a href="games.html" class="btn" aria-label="عودة للألعاب">عودة للألعاب</a></div>
   </header>
-
   <main class="wrap game-page board-page">
-    <section id="boardArea" class="boardGrid"></section>
-    <aside class="sidePanel small">
+    <section id="boardArea" class="boardGrid" aria-label="لوحة الأسئلة"></section>
+    <aside class="sidePanel small" aria-label="لوحة جانبية">
       <div class="card">
         <div id="boardStatus" class="muted small">جارٍ التحميل...</div>
         <div id="boardControls" style="margin-top:8px"></div>
       </div>
     </aside>
   </main>
-
+  <div id="toastContainer" class="toast-container"></div>
   <script type="module" src="js/board.js"></script>
 </body>
+</html>
 </html>

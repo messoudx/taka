@@ -11,14 +11,16 @@
   <header class="topbar">
     <div class="brand-sm">XO</div>
     <div id="gameRoomInfo" class="meBox"></div>
-    <div><a href="games.html" class="btn">عودة للألعاب</a></div>
+    <div><a href="games.html" class="btn" aria-label="عودة للألعاب">عودة للألعاب</a></div>
   </header>
-
   <main class="center-card game-page">
     <div class="gameCardFull">
       <h2>XO</h2>
-      <script type="module" src="js/xo.js"></script>
+      <div id="xoTurnInfo" class="muted small"></div>
+      <div id="xoGrid" class="xoGrid"></div>
     </div>
   </main>
+  <div id="toastContainer" class="toast-container"></div>
+  <script type="module" src="js/xo.js"></script>
 </body>
 </html>

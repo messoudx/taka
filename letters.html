@@ -11,20 +11,20 @@
   <header class="topbar">
     <div class="brand-sm">تحدي الحروف</div>
     <div id="gameRoomInfo" class="meBox"></div>
-    <div><a href="games.html" class="btn">عودة للألعاب</a></div>
+    <div><a href="games.html" class="btn" aria-label="عودة للألعاب">عودة للألعاب</a></div>
   </header>
-
   <main class="center-card game-page">
     <div class="gameCardFull">
       <h2>تحدي الحروف</h2>
       <div id="lettersStatus" class="muted small">جارٍ التحميل...</div>
-      <div id="lettersGrid" class="lettersGrid"></div>
+      <div id="lettersGrid" class="lettersGrid" aria-label="شبكة الحروف"></div>
       <div style="margin-top:12px;display:flex;gap:8px;justify-content:center">
-        <button id="lettersResign" class="btn">استسلام</button>
+        <button id="lettersResign" class="btn" aria-label="استسلام">استسلام</button>
       </div>
     </div>
   </main>
-
+  <div id="toastContainer" class="toast-container"></div>
   <script type="module" src="js/letters.js"></script>
 </body>
+</html>
 </html>

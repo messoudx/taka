@@ -11,14 +11,13 @@
     <div class="brand-sm">Taka</div>
     <div id="meBox" class="meBox"></div>
     <div>
-      <button id="logoutBtn" class="btn">تسجيل خروج</button>
+      <button id="logoutBtn" class="btn" aria-label="تسجيل خروج">تسجيل خروج</button>
     </div>
   </header>
-
   <main class="wrap layout-games">
     <section class="gamesMain">
       <h2>الألعاب</h2>
-      <div class="gamesGrid" id="gamesGrid">
+      <nav class="gamesGrid" id="gamesGrid" aria-label="قائمة الألعاب">
         <article class="gameCard" data-game="board">
           <h3>لوحة الأسئلة</h3>
           <div class="card-actions">
@@ -37,10 +36,9 @@
             <button class="btn requestGame" data-game="letters">اطلب التحدي</button>
           </div>
         </article>
-      </div>
+      </nav>
     </section>
-
-    <aside class="sidePanel">
+    <aside class="sidePanel" aria-label="لوحة جانبية">
       <div class="card">
         <h4>الغرفة</h4>
         <div style="display:flex;gap:8px;margin-top:8px">
@@ -69,6 +67,7 @@
       </div>
     </aside>
   </main>
+  <div id="toastContainer" class="toast-container"></div>
 
   <!-- Firebase ثم module app.js -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
