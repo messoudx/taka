@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Taka — الألعاب</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-sm">Taka</div>
+    <div id="meBox" class="meBox"></div>
+    <div>
+      <button id="logoutBtn" class="btn">تسجيل خروج</button>
+    </div>
+  </header>
+
+  <main class="wrap layout-games">
+    <!-- الألعاب على الوسط/يسار (المحتوى) -->
+    <section class="gamesMain">
+      <h2>الألعاب</h2>
+      <div class="gamesGrid" id="gamesGrid">
+        <article class="gameCard" data-game="board">
+          <h3>لوحة الأسئلة</h3>
+          <p>لعبة فرق — اطرح طلباً وانطلق مع فريقك.</p>
+          <div class="card-actions">
+            <button class="btn requestGame" data-game="board">اطلب اللعبة</button>
+            <a class="btn" id="openBoardAdmin" href="#">افتح لوحة (إدارة)</a>
+          </div>
+        </article>
+
+        <article class="gameCard" data-game="xo">
+          <h3>XO</h3>
+          <p>مباراة 1 ضد 1 — الدور ينتقل تلقائياً.</p>
+          <div class="card-actions">
+            <button class="btn requestGame" data-game="xo">اطلب لعبة XO</button>
+          </div>
+        </article>
+
+        <article class="gameCard" data-game="letters">
+          <h3>تحدي الحروف</h3>
+          <p>شبكة 5×5 — نظام فرق بدور متبادل.</p>
+          <div class="card-actions">
+            <button class="btn requestGame" data-game="letters">اطلب التحدي</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- الشريط الجانبي: غرفة + أدوات (الهاتف يعرض بعد المحتوى كقائمة قابلة للطي) -->
+    <aside class="sidePanel">
+      <div class="card">
+        <h4>الغرفة</h4>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input id="roomInput" placeholder="رمز الغرفة" />
+          <button id="createRoomBtn" class="btn">إنشاء</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="joinRoomBtn" class="btn primary">انضم</button>
+          <button id="leaveRoomBtn" class="btn" title="مغادرة">مغادرة</button>
+        </div>
+        <div id="playersList" style="margin-top:10px">لم تنضم لغرفة بعد</div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h4>الإشعارات</h4>
+        <div id="notifList" style="min-height:80px" class="muted small">ستظهر إشعارات القبول/الرفض هنا</div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h4>الدردشة (تاريخ)</h4>
+        <div id="chatLog" style="min-height:120px;overflow:auto" class="muted small"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input id="chatInput" placeholder="رسالة (ستتحول لإشعار عند النوع نظام)" />
+          <button id="sendChat" class="btn primary">أرسل</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- toasts -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script type="module" src="js/toast.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

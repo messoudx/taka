@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>لوحة الأسئلة — Taka</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-sm">لوحة الأسئلة</div>
+    <div id="gameRoomInfo" class="meBox"></div>
+    <div><a href="games.html" class="btn">عودة للألعاب</a></div>
+  </header>
+
+  <main class="wrap game-page board-page">
+    <section id="boardArea" class="boardGrid"></section>
+    <aside class="sidePanel small">
+      <div class="card">
+        <div id="boardStatus" class="muted small">جارٍ التحميل...</div>
+        <div id="boardControls" style="margin-top:8px"></div>
+      </div>
+    </aside>
+  </main>
+
+  <script type="module" src="js/board.js"></script>
+</body>
+</html>
