@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>XO — Taka</title>
+  <title>XO</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,20 +16,9 @@
 
   <main class="center-card game-page">
     <div class="gameCardFull">
-      <h2>XO — المباراة</h2>
-      <div class="metaRow">
-        <div id="xoTurnInfo" class="muted small">جاري التحميل...</div>
-        <div id="xoScore" class="muted small"></div>
-      </div>
-
-      <div id="xoGrid" class="xoGrid"></div>
-
-      <div id="xoControls" style="margin-top:12px;display:flex;gap:8px;justify-content:center">
-        <button id="xoResign" class="btn">استسلام</button>
-      </div>
+      <h2>XO</h2>
+      <script type="module" src="js/xo.js"></script>
     </div>
   </main>
-
-  <script type="module" src="js/xo.js"></script>
 </body>
 </html>

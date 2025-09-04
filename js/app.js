@@ -220,9 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const s = snap.val() || {};
       Object.keys(s).forEach(key=>{
         if(s[key] && s[key].active){
-          if(key === 'xo') location.href = `xo.html?room=${roomRef.key}`;
-          else if(key === 'letters') location.href = `letters.html?room=${roomRef.key}`;
-          else if(key === 'board') location.href = `board.html?room=${roomRef.key}`;
+          if(key === 'xo') location.href = `xo.html=${roomRef.key}`;
+          else if(key === 'letters') location.href = `letters.html=${roomRef.key}`;
+          else if(key === 'board') location.href = `board.html=${roomRef.key}`;
         }
       });
     });
