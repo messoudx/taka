@@ -2,34 +2,36 @@
 <html lang="ar">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Taka — تسجيل الدخول</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-soft">
+<body>
   <main class="center-card auth-page">
     <div class="auth-card">
       <h1 class="brand">Taka — Anime Power</h1>
 
       <label class="label">الاسم المستعار</label>
-      <input id="nickInput" placeholder="مثلاً: تاكا_الزعيم" />
+      <input id="nickInput" placeholder="اكتب اسمك المستعار" />
 
       <label class="label">اسم المستخدم</label>
-      <input id="userCodeInput" placeholder="username" autocomplete="off"/>
+      <input id="userCodeInput" placeholder="username" />
 
       <label class="label">كلمة المرور</label>
       <input id="passwordInput" type="password" placeholder="كلمة المرور" />
 
       <div class="row" style="margin-top:12px">
         <button id="loginBtn" class="btn primary" style="flex:1">دخول</button>
-        <button id="toGamesBtn" class="btn" style="flex:1">الذهاب للواجهة (تجربة)</button>
+        <button id="toGamesBtn" class="btn" style="flex:1">تجربة (Games)</button>
       </div>
-
-      <p class="muted small" style="margin-top:12px">كلمات المرور تُجزأ (SHA-256) قبل الإرسال. إن كنت مسؤولاً وتريد إنشاء مستخدمين، افتح Console وادع <code>createHashedUser('alice','alice123')</code>.</p>
     </div>
   </main>
 
+  <!-- Firebase (compat) يجب أن تُحمّل قبل أي كود يعتمد على firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <!-- كود التطبيق كـ module (يستخدم imports نسبية داخل js/) -->
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
