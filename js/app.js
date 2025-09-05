@@ -1,5 +1,3 @@
-// js/app.js (module - lobby + login handlers)
-// يستخدم toast.js عبر import نسبي
 import { showToast } from './toast.js';
 
 const firebaseConfig = {
@@ -12,24 +10,25 @@ const firebaseConfig = {
   appId: "1:719794585832:web:1c235cfd14e78b5a92095d",
   measurementId: "G-6MC3MZZYTZ"
 };
-if(!window.firebase.apps || window.firebase.apps.length === 0){
-  firebase.initializeApp(firebaseConfig);
-}
+if (!window.firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-function makeId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
-function escapeHtml(s){ return (s||'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-async function sha256Hex(str){
+function makeId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+function escapeHtml(s) {
+  return (s || '').toString().replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+async function sha256Hex(str) {
   const enc = new TextEncoder();
   const data = enc.encode(str);
   const hash = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   // عناصر الصفحة
   const loginForm = document.getElementById('loginForm');
-  const loginBtn = document.getElementById('loginBtn');
   const nickInput = document.getElementById('nickInput');
   const userCodeInput = document.getElementById('userCodeInput');
   const passwordInput = document.getElementById('passwordInput');
@@ -44,31 +43,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatInput = document.getElementById('chatInput');
   const sendChat = document.getElementById('sendChat');
   const requestBtns = document.querySelectorAll('.requestGame');
+
   // حالة المستخدم
-  let me = { id: makeId(), nick:'', code:'' };
-  try{ const raw = localStorage.getItem('taka_user'); if(raw) me = JSON.parse(raw); }catch(e){}
-  if(meBox){
+  let me = { id: makeId(), nick: '', code: '' };
+  try { const raw = localStorage.getItem('taka_user'); if (raw) me = JSON.parse(raw); } catch (e) { }
+  if (meBox) {
     meBox.innerHTML = me.nick ? `<strong>${escapeHtml(me.nick)}</strong>` : `<a href="index.html" class="btn">سجل دخول</a>`;
   }
+
   // تسجيل الدخول
-  if(loginForm){
-    loginForm.addEventListener('submit', async (e)=>{
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const nick = (nickInput.value||'').trim();
-      const username = (userCodeInput.value||'').trim();
-      const pwd = (passwordInput.value||'').trim();
-      if(!nick || !username || !pwd){ showToast('يرجى تعبئة جميع الحقول'); return; }
+      const nick = (nickInput.value || '').trim();
+      const username = (userCodeInput.value || '').trim();
+      const pwd = (passwordInput.value || '').trim();
+      if (!nick || !username || !pwd) { showToast('يرجى تعبئة جميع الحقول'); return; }
       const userRef = db.ref('users/' + username);
       const snap = await userRef.once('value');
-      if(!snap.exists()){ showToast('المستخدم غير موجود'); return; }
+      if (!snap.exists()) { showToast('المستخدم غير موجود'); return; }
       const enteredHash = await sha256Hex(pwd);
       const user = snap.val();
-      if(user.passwordHash === enteredHash){
+      if (user.passwordHash === enteredHash) {
         const onlineSnap = await userRef.child('online').once('value');
-        if(onlineSnap.exists() && onlineSnap.val() === true){
+        if (onlineSnap.exists() && onlineSnap.val() === true) {
           showToast('الحساب متصل من مكان آخر'); return;
         }
-        await userRef.update({ online:true, lastLogin:Date.now(), nick });
+        await userRef.update({ online: true, lastLogin: Date.now(), nick });
         userRef.child('online').onDisconnect().set(false);
         me = { id: username + '_' + Date.now(), nick, code: username };
         localStorage.setItem('taka_user', JSON.stringify(me));
@@ -78,153 +79,135 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
   // تسجيل الخروج
-  if(logoutBtn){
-    logoutBtn.addEventListener('click', async ()=>{
-      try{ if(me.code) await db.ref('users/' + me.code).update({ online:false }); }catch(e){}
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try { if (me.code) await db.ref('users/' + me.code).update({ online: false }); } catch (e) { }
       localStorage.removeItem('taka_user');
       location.href = 'index.html';
     });
   }
+
   // إدارة الغرف
   let roomRef = null;
-  if(createRoomBtn) createRoomBtn.addEventListener('click', async ()=>{
-    const id = (roomInput.value||'').trim(); if(!id){ showToast('اكتب رمز الغرفة'); return; }
+  if (createRoomBtn) createRoomBtn.addEventListener('click', async () => {
+    const id = (roomInput.value || '').trim(); if (!id) { showToast('اكتب رمز الغرفة'); return; }
     const ref = db.ref('rooms/' + id);
     const snap = await ref.once('value');
-    if(snap.exists()){ showToast('الغرفة موجودة'); return; }
-    await ref.set({ meta:{ createdAt:Date.now(), createdBy: me.id }, players:{}, sessions:{}, chat:{}, requests:{} });
+    if (snap.exists()) { showToast('الغرفة موجودة'); return; }
+    await ref.set({ meta: { createdAt: Date.now(), createdBy: me.id }, players: {}, sessions: {}, chat: {}, requests: {} });
     joinRoom(id);
   });
-  if(joinRoomBtn) joinRoomBtn.addEventListener('click', ()=> {
-    const id = (roomInput.value||'').trim(); if(!id){ showToast('اكتب رمز غرفة'); return; } joinRoom(id);
+  if (joinRoomBtn) joinRoomBtn.addEventListener('click', () => {
+    const id = (roomInput.value || '').trim(); if (!id) { showToast('اكتب رمز غرفة'); return; } joinRoom(id);
   });
-  async function joinRoom(id){
-    if(!me.nick){ showToast('سجل دخول أولاً'); location.href='index.html'; return; }
+  async function joinRoom(id) {
+    if (!me.nick) { showToast('سجل دخول أولاً'); location.href = 'index.html'; return; }
     roomRef = db.ref('rooms/' + id);
-    const snap = await roomRef.once('value'); if(!snap.exists()){ showToast('الغرفة غير موجودة'); roomRef = null; return; }
+    const snap = await roomRef.once('value'); if (!snap.exists()) { showToast('الغرفة غير موجودة'); roomRef = null; return; }
     await roomRef.child('players/' + me.id).set({ name: me.nick, joinedAt: Date.now() });
     roomRef.child('players/' + me.id).onDisconnect().remove();
     const meta = (await roomRef.child('meta').once('value')).val() || {};
-    if(meta.createdBy === me.id){
+    if (meta.createdBy === me.id) {
       roomRef.onDisconnect().remove();
     }
     attachRoomListeners();
     showToast(`انضممت إلى الغرفة ${id}`);
   }
-  if(leaveRoomBtn) leaveRoomBtn.addEventListener('click', async ()=>{
-    if(!roomRef) { showToast('أنت لست داخل غرفة'); return; }
+  if (leaveRoomBtn) leaveRoomBtn.addEventListener('click', async () => {
+    if (!roomRef) { showToast('أنت لست داخل غرفة'); return; }
     const meta = (await roomRef.child('meta').once('value')).val() || {};
     await roomRef.child('players/' + me.id).remove();
-    if(meta.createdBy === me.id){
+    if (meta.createdBy === me.id) {
       await roomRef.remove();
       showToast('أنت المنشئ — الغرفة حُذفت');
     } else {
       showToast('غادرت الغرفة');
     }
-    if(roomRef) roomRef.off();
+    if (roomRef) roomRef.off();
     roomRef = null;
-    if(playersList) playersList.innerHTML = 'لم تنضم لغرفة بعد';
+    if (playersList) playersList.innerHTML = 'لم تنضم لغرفة بعد';
   });
-  if(sendChat) sendChat.addEventListener('click', async ()=>{
-    if(!roomRef) return showToast('انضم لغرفة أولاً');
-    const text = (chatInput.value||'').trim(); if(!text) return;
+
+  // الدردشة
+  if (sendChat) sendChat.addEventListener('click', async () => {
+    if (!roomRef) return showToast('انضم لغرفة أولاً');
+    const text = (chatInput.value || '').trim(); if (!text) return;
     await roomRef.child('chat').push().set({ name: me.nick, text, ts: Date.now(), senderId: me.id });
     chatInput.value = '';
   });
-  requestBtns.forEach(b=>{
-    b.addEventListener('click', async ()=>{
-      if(!roomRef) return showToast('انضم لغرفة');
+
+  // طلب الألعاب
+  requestBtns.forEach(b => {
+    b.addEventListener('click', async () => {
+      if (!roomRef) return showToast('انضم لغرفة');
       const game = b.dataset.game;
       const id = makeId();
       await roomRef.child('requests/' + id).set({ id, requesterId: me.id, requesterName: me.nick, game, ts: Date.now() });
-      await roomRef.child('chat').push().set({ name:'نظام', text: `${me.nick} طلب لعب ${game}`, ts: Date.now() });
+      await roomRef.child('chat').push().set({ name: 'نظام', text: `${me.nick} طلب لعب ${game}`, ts: Date.now() });
     });
   });
-  window.acceptReq = async function(reqId){
-    if(!roomRef) return showToast('انضم لغرفة');
+
+  // قبول الطلبات
+  window.acceptReq = async function (reqId) {
+    if (!roomRef) return showToast('انضم لغرفة');
     const snap = await roomRef.child('requests/' + reqId).once('value'); const r = snap.val();
-    if(!r) return showToast('الطلب انتهى'); if(r.requesterId === me.id) return showToast('لا يمكنك قبول طلبك');
-    if(r.game === 'xo'){
-      const session = { active:true, game:'xo', startedAt:Date.now(), roles:{ X: me.id, O: r.requesterId } };
+    if (!r) return showToast('الطلب انتهى'); if (r.requesterId === me.id) return showToast('لا يمكنك قبول طلبك');
+    if (r.game === 'xo') {
+      const session = { active: true, game: 'xo', startedAt: Date.now(), roles: { X: me.id, O: r.requesterId } };
       await roomRef.child('sessions/xo').set(session);
       await roomRef.child('sessions/xo/state').set({ board: Array(9).fill(''), turn: session.roles.X, winner: '', startedAt: Date.now() });
     } else {
-      const playersSnap = await roomRef.child('players').once('value'); const players = playersSnap.val()||{};
+      const playersSnap = await roomRef.child('players').once('value'); const players = playersSnap.val() || {};
       const ids = Object.keys(players);
-      let team1=[], team2=[];
-      if(ids.length >= 4){
-        let t=0; ids.forEach(pid=>{ if(t===0) team1.push(pid); else team2.push(pid); t=1-t; });
+      let team1 = [], team2 = [];
+      if (ids.length >= 4) {
+        let t = 0; ids.forEach(pid => { if (t === 0) team1.push(pid); else team2.push(pid); t = 1 - t; });
       } else {
         team1 = [r.requesterId]; team2 = [me.id];
       }
-      const session = { active:true, game:r.game, startedAt:Date.now(), roles:{ team1, team2 } };
+      const session = { active: true, game: r.game, startedAt: Date.now(), roles: { team1, team2 } };
       await roomRef.child('sessions/' + r.game).set(session);
-      await roomRef.child('sessions/' + r.game + '/state').set({ board: r.game==='letters'? Array(25).fill('') : {}, turn:'team1', winner:'', startedAt: Date.now() });
+      await roomRef.child('sessions/' + r.game + '/state').set({ board: r.game === 'letters' ? Array(25).fill('') : {}, turn: 'team1', winner: '', startedAt: Date.now() });
     }
     await roomRef.child('requests/' + reqId).remove();
-    await roomRef.child('chat').push().set({ name:'نظام', text: `${me.nick} قبل طلب ${r.requesterName} للعب ${r.game}`, ts: Date.now() });
+    await roomRef.child('chat').push().set({ name: 'نظام', text: `${me.nick} قبل طلب ${r.requesterName} للعب ${r.game}`, ts: Date.now() });
   };
-  function attachRoomListeners(){
-    if(!roomRef) return;
-    roomRef.child('players').on('value', snap=>{
+
+  // مراقبة الغرفة
+  function attachRoomListeners() {
+    if (!roomRef) return;
+    roomRef.child('players').on('value', snap => {
       const v = snap.val() || {}; const ids = Object.keys(v);
-      if(playersList) playersList.innerHTML = ids.length? ids.map(k=>`<div style="padding:6px;border-bottom:1px solid #f3f3f3"><strong>${escapeHtml(v[k].name)}</strong></div>`).join('') : 'لا أحد';
+      if (playersList) playersList.innerHTML = ids.length ? ids.map(k => `<div style="padding:6px;border-bottom:1px solid #f3f3f3"><strong>${escapeHtml(v[k].name)}</strong></div>`).join('') : 'لا أحد';
     });
-    roomRef.child('chat').on('child_added', snap=>{
+    roomRef.child('chat').on('child_added', snap => {
       const msg = snap.val();
-      if(!msg) return;
-      if(msg.name === 'نظام'){ showToast(msg.text, 4500); if(document.getElementById('notifList')) document.getElementById('notifList').innerHTML = `<div style="padding:6px;border-bottom:1px solid #eee">${escapeHtml(msg.text)}</div>` + document.getElementById('notifList').innerHTML; }
-      else if(chatLog) chatLog.innerHTML = `<div style="padding:6px;border-bottom:1px solid #f6f6f6"><strong>${escapeHtml(msg.name)}</strong>: ${escapeHtml(msg.text)}</div>` + chatLog.innerHTML;
+      if (!msg) return;
+      if (msg.name === 'نظام') { showToast(msg.text, 4500); if (document.getElementById('notifList')) document.getElementById('notifList').innerHTML = `<div style="padding:6px;border-bottom:1px solid #eee">${escapeHtml(msg.text)}</div>` + document.getElementById('notifList').innerHTML; }
+      else if (chatLog) chatLog.innerHTML = `<div style="padding:6px;border-bottom:1px solid #f6f6f6"><strong>${escapeHtml(msg.name)}</strong>: ${escapeHtml(msg.text)}</div>` + chatLog.innerHTML;
     });
-    roomRef.child('requests').on('value', snap=>{
-      const v = snap.val(); const arr = v? Object.values(v) : [];
+    roomRef.child('requests').on('value', snap => {
+      const v = snap.val(); const arr = v ? Object.values(v) : [];
       const box = document.getElementById('notifList');
-      if(!box) return;
-      box.innerHTML = arr.sort((a,b)=>a.ts-b.ts).map(r=>{
+      if (!box) return;
+      box.innerHTML = arr.sort((a, b) => a.ts - b.ts).map(r => {
         const canAccept = r.requesterId !== me.id;
         const acceptBtn = canAccept ? `<button class="btn" onclick="acceptReq('${r.id}')">اقبل</button>` : `<span class="muted small">بانتظار قبول</span>`;
         return `<div style="padding:8px;border-bottom:1px solid #f6f6f6"><strong>${escapeHtml(r.requesterName)}</strong> طلب <em>${escapeHtml(r.game)}</em> — ${acceptBtn}</div>`;
       }).join('') || '<div class="muted small">لا توجد طلبات</div>';
     });
-    roomRef.child('sessions').on('value', snap=>{
+    roomRef.child('sessions').on('value', snap => {
       const s = snap.val() || {};
-      Object.keys(s).forEach(key=>{
-        if(s[key] && s[key].active){
-          if(key === 'xo') location.href = `xo.html?room=${roomRef.key}`;
-          else if(key === 'letters') location.href = `letters.html?room=${roomRef.key}`;
-          else if(key === 'board') location.href = `board.html?room=${roomRef.key}`;
+      Object.keys(s).forEach(key => {
+        if (s[key] && s[key].active) {
+          if (key === 'xo') location.href = `xo.html?room=${roomRef.key}`;
+          else if (key === 'letters') location.href = `letters.html?room=${roomRef.key}`;
+          else if (key === 'board') location.href = `board.html?room=${roomRef.key}`;
         }
       });
     });
   }
-}); // end DOMContentLoaded
-      if(!msg) return;
-      if(msg.name === 'نظام'){ showToast(msg.text, 4500); if(document.getElementById('notifList')) document.getElementById('notifList').innerHTML = `<div style="padding:6px;border-bottom:1px solid #eee">${escapeHtml(msg.text)}</div>` + document.getElementById('notifList').innerHTML; }
-      else if(chatLog) chatLog.innerHTML = `<div style="padding:6px;border-bottom:1px solid #f6f6f6"><strong>${escapeHtml(msg.name)}</strong>: ${escapeHtml(msg.text)}</div>` + chatLog.innerHTML;
-    });
+});
 
-    roomRef.child('requests').on('value', snap=>{
-      const v = snap.val(); const arr = v? Object.values(v) : [];
-      const box = document.getElementById('notifList');
-      if(!box) return;
-      box.innerHTML = arr.sort((a,b)=>a.ts-b.ts).map(r=>{
-        const canAccept = r.requesterId !== me.id;
-        const acceptBtn = canAccept ? `<button class="btn" onclick="acceptReq('${r.id}')">اقبل</button>` : `<span class="muted small">بانتظار قبول</span>`;
-        return `<div style="padding:8px;border-bottom:1px solid #f6f6f6"><strong>${escapeHtml(r.requesterName)}</strong> طلب <em>${escapeHtml(r.game)}</em> — ${acceptBtn}</div>`;
-      }).join('') || '<div class="muted small">لا توجد طلبات</div>';
-    });
-
-    // sessions watcher: redirect players to the game page when session created
-    roomRef.child('sessions').on('value', snap=>{
-      const s = snap.val() || {};
-      Object.keys(s).forEach(key=>{
-        if(s[key] && s[key].active){
-          if(key === 'xo') location.href = `xo.html?room=${roomRef.key}`;
-          else if(key === 'letters') location.href = `letters.html?room=${roomRef.key}`;
-          else if(key === 'board') location.href = `board.html?room=${roomRef.key}`;
-        }
-      });
-    });
-  }
-}); // end DOMContentLoaded
