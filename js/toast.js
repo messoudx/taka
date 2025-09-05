@@ -4,7 +4,7 @@ export function showToast(text, ttl=4000){
   if(!container) return;
   const el = document.createElement('div'); el.className='toast'; el.innerText = text;
   container.appendChild(el);
-  setTimeout(()=>{ el.style.transition='opacity .3s, transform .3s'; el.style.opacity='0'; el.style.transform='translateY(-8px)'; setTimeout(()=>el.remove(),350); }, ttl);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(-8px)'; setTimeout(()=>el.remove(),350); }, ttl);
 }
 
 // expose globally for simple use

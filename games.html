@@ -3,37 +3,35 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title> الألعاب</title>
+  <title>الألعاب | TAKA TEAM</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand-sm">Taka</div>
+    <div class="brand-sm">TAKA TEAM</div>
     <div id="meBox" class="meBox"></div>
-    <div>
-      <button id="logoutBtn" class="btn" aria-label="تسجيل خروج">تسجيل خروج</button>
-    </div>
+    <button id="logoutBtn" class="btn" aria-label="تسجيل خروج">تسجيل خروج</button>
   </header>
   <main class="wrap layout-games">
     <section class="gamesMain">
-      <h2>الألعاب</h2>
+      <h2>اختر لعبة</h2>
       <nav class="gamesGrid" id="gamesGrid" aria-label="قائمة الألعاب">
         <article class="gameCard" data-game="board">
           <h3>لوحة الأسئلة</h3>
           <div class="card-actions">
-            <button class="btn requestGame" data-game="board">اطلب اللعبة</button>
+            <button class="btn requestGame" data-game="board">ابدأ اللعبة</button>
           </div>
         </article>
         <article class="gameCard" data-game="xo">
           <h3>XO</h3>
           <div class="card-actions">
-            <button class="btn requestGame" data-game="xo">XO</button>
+            <button class="btn requestGame" data-game="xo">ابدأ اللعبة</button>
           </div>
         </article>
         <article class="gameCard" data-game="letters">
           <h3>تحدي الحروف</h3>
           <div class="card-actions">
-            <button class="btn requestGame" data-game="letters">اطلب التحدي</button>
+            <button class="btn requestGame" data-game="letters">ابدأ التحدي</button>
           </div>
         </article>
       </nav>
@@ -51,15 +49,13 @@
         </div>
         <div id="playersList" style="margin-top:10px">لم تنضم لغرفة بعد</div>
       </div>
-
       <div class="card" style="margin-top:12px">
         <h4>الإشعارات</h4>
-        <div id="notifList" style="min-height:80px" class="muted small">لا إشعارات</div>
+        <div id="notifList" class="muted small" style="min-height:80px">لا إشعارات</div>
       </div>
-
       <div class="card" style="margin-top:12px">
         <h4>الدردشة</h4>
-        <div id="chatLog" style="min-height:120px;overflow:auto" class="muted small"></div>
+        <div id="chatLog" class="muted small" style="min-height:120px;overflow:auto"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
           <input id="chatInput" placeholder="اكتب رسالة..." />
           <button id="sendChat" class="btn primary">أرسل</button>
@@ -68,8 +64,6 @@
     </aside>
   </main>
   <div id="toastContainer" class="toast-container"></div>
-
-  <!-- Firebase ثم module app.js -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script type="module" src="js/app.js"></script>

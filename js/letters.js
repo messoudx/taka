@@ -46,7 +46,7 @@ async function init(){
   stateRef.on('value', snap=>{
     const s = snap.val();
     if(!s) return;
-    updateUI(s);
+    updateUI(s.board);
     statusEl.innerText = s.winner ? `انتهت — الفائز: ${s.winner}` : `الدور: ${s.turn}`;
   });
 

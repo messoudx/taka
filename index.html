@@ -3,37 +3,30 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title> TAKA TEAM </title>
+  <title>TAKA TEAM | تسجيل الدخول</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <main class="center-card auth-page">
     <div class="auth-card">
-      <h1 class="brand">Taka — Anime Power</h1>
-      <form autocomplete="on">
-        <label class="label" for="nickInput"> الكنية </label>
-        <input id="nickInput" name="nickname" placeholder="اكتب اسمك المستعار" autocomplete="nickname" />
+      <h1 class="brand">TAKA — Anime Power</h1>
+      <form id="loginForm" autocomplete="on">
+        <label class="label" for="nickInput">الكنية</label>
+        <input id="nickInput" name="nickname" placeholder="اكتب اسمك المستعار" autocomplete="nickname" required />
 
         <label class="label" for="userCodeInput">اسم المستخدم</label>
-        <input id="userCodeInput" name="username" placeholder="username" autocomplete="username" />
+        <input id="userCodeInput" name="username" placeholder="username" autocomplete="username" required />
 
         <label class="label" for="passwordInput">كلمة المرور</label>
-        <input id="passwordInput" name="password" type="password" placeholder="كلمة المرور" autocomplete="current-password" />
+        <input id="passwordInput" name="password" type="password" placeholder="كلمة المرور" autocomplete="current-password" required />
 
-        <div class="row" style="margin-top:12px">
-          <button id="loginBtn" class="btn primary" style="flex:1" type="submit">دخول</button>
-        </div>
+        <button id="loginBtn" class="btn primary" type="submit" style="margin-top:18px;width:100%">دخول</button>
       </form>
     </div>
   </main>
-
-  <!-- Firebase (compat) يجب أن تُحمّل قبل أي كود يعتمد على firebase -->
+  <div id="toastContainer" class="toast-container"></div>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
-  <!-- كود التطبيق كـ module (يستخدم imports نسبية داخل js/) -->
   <script type="module" src="js/app.js"></script>
-
-  <div id="toastContainer" class="toast-container"></div>
 </body>
 </html>
